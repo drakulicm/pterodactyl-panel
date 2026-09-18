@@ -1,0 +1,73 @@
+name: pterodactyl-dev
+
+services:
+  database:
+    image: mariadb:11
+    environment:
+      MYSQL_ROOT_PASSWORD: "dev_root"
+      MYSQL_DATABASE: "panel"
+      MYSQL_USER: "pterodactyl"
+      MYSQL_PASSWORD: "dev_password"
+    volumes:
+      - "database:/var/lib/mysql"
+
+  cache:
+    image: redis:alpine
+
+  panel:
+    image: ghcr.io/pterodactyl/panel:v1.15.1
+    depends_on:
+      - database
+      - cache
+    ports:
+      - "8080:80"
+      - "8081:8081"
+      - "2022:2022"
+    volumes:
+      - "panel-var:/app/var"
+      - "./app:/app/app"
+      - "./config:/app/config"
+      - "./routes:/app/routes"
+      - "./resources/views:/app/resources/views"
+      - "./resources/lang:/app/resources/lang"
+      - "./public/build:/app/public/build"
+    environment:
+      APP_URL: "http://localhost:8080"
+      APP_ENV: "local"
+      APP_DEBUG: "true"
+      APP_TIMEZONE: "UTC"
+      APP_SERVICE_AUTHOR: "dev@example.com"
+      APP_ENVIRONMENT_ONLY: "false"
+      APP_NEW_UI: "true"
+      APP_NEW_ADMIN: "true"
+      CACHE_DRIVER: "redis"
+      SESSION_DRIVER: "redis"
+      QUEUE_DRIVER: "redis"
+      REDIS_HOST: "cache"
+      DB_HOST: "database"
+      DB_PORT: "3306"
+      DB_PASSWORD: "dev_password"
+      HASHIDS_LENGTH: 8
+      RECAPTCHA_ENABLED: "false"
+      MAIL_DRIVER: "log"
+      MAIL_FROM: "dev@example.com"
+
+  wings:
+    image: ghcr.io/pterodactyl/wings:latest
+    network_mode: "service:panel"
+    depends_on:
+      - panel
+    tty: true
+    environment:
+      TZ: "UTC"
+      WINGS_UID: 988
+      WINGS_GID: 988
+      WINGS_USERNAME: pterodactyl
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./.dev/wings/etc:/etc/pterodactyl"
+      - "/Users/Shared/projects/pterodactyl-panel/.dev/wings:/Users/Shared/projects/pterodactyl-panel/.dev/wings"
+
+volumes:
+  database:
+  panel-var:

@@ -7,6 +7,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Webmozart\Assert\Assert;
 use Pterodactyl\Models\ApiKey;
+use Laravel\Sanctum\TransientToken;
 use Illuminate\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use League\Fractal\TransformerAbstract;
@@ -67,6 +68,12 @@ abstract class BaseTransformer extends TransformerAbstract
         $allowed = [ApiKey::TYPE_ACCOUNT, ApiKey::TYPE_APPLICATION];
 
         $token = $this->request->user()?->currentAccessToken();
+        // Requests authenticated with a session cookie (the admin UI) are not bound to the
+        // permissions of an API key, a root administrator can load every relationship.
+        if ($token instanceof TransientToken) {
+            return (bool) $this->request->user()->root_admin;
+        }
+
         if (!$token instanceof ApiKey || !in_array($token->key_type, $allowed)) {
             return false;
         }

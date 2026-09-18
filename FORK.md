@@ -1,0 +1,89 @@
+# Fork notes
+
+This is a fork of [pterodactyl/panel](https://github.com/pterodactyl/panel) (branched from `v1.15.1`) that replaces the
+frontend with React 19 + Vite + Tailwind v4 + [shadcn/ui on Base UI](https://ui.shadcn.com). The Laravel backend and
+Wings are unchanged apart from additive API endpoints.
+
+## Layout
+
+| Path | What it is |
+| --- | --- |
+| `resources/app` | The new frontend. A self-contained pnpm package (own `package.json`, `vite.config.ts`), builds to `public/build`. |
+| `resources/scripts` | The upstream React 16 / webpack frontend. Reference only, deleted at cutover. |
+| `resources/views/templates/app.blade.php` | Wrapper that boots the new SPA (`@vite`), replacing `wrapper.blade.php`. |
+| `config/ui.php` | The `APP_NEW_UI` / `APP_NEW_ADMIN` feature flags. |
+| `resources/app/CONVENTIONS.md` | How to write code in the new frontend. Read before contributing. |
+| `resources/app/ADMIN_API.md` | Contract for the Application API endpoints added by this fork. |
+
+Everything is additive so the fork stays rebasable onto upstream. Upstream files touched so far:
+`routes/admin.php`, `routes/api-application.php`, `app/Http/Controllers/{Base/IndexController,Auth/LoginController}.php`,
+`app/Transformers/Api/Application/{BaseTransformer,EggTransformer}.php`, `Dockerfile`.
+
+## Feature flags
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `APP_NEW_UI` | `false` | Serves the new client area and auth pages instead of the upstream ones. |
+| `APP_NEW_ADMIN` | `false` | Serves the new admin SPA instead of the Blade/AdminLTE admin. |
+
+Both can be flipped independently, and turning them off restores the upstream UI without a rebuild, which is the
+rollback path until `resources/scripts` is deleted.
+
+## Local development
+
+Requires Docker Desktop, Node >= 22 and pnpm. No local PHP needed — the dev stack runs the upstream image with this
+repo's `app/`, `config/`, `routes/`, `resources/views`, `resources/lang` and `public/build` bind-mounted, so PHP edits
+are live immediately.
+
+```bash
+docker compose -f compose.dev.yml up -d     # panel on :8080, wings on :8081, sftp on :2022
+cd resources/app && pnpm install
+pnpm build                                  # or: pnpm dev  (Vite dev server on :5173)
+```
+
+The panel is at http://localhost:8080. Create an admin user with:
+
+```bash
+docker compose -f compose.dev.yml exec panel php artisan p:user:make
+```
+
+### The local Wings node
+
+`compose.dev.yml` runs Wings with `network_mode: service:panel` so the panel reaches it at `localhost`. On Docker Desktop
+every path Wings uses must resolve identically inside and outside the container, so they all live under `.dev/wings/`
+(git-ignored), including `system.machine_id.directory` and `passwd.directory` — the defaults under `/run/wings` break
+container creation. Wings rewrites its own `config.yml` on boot, so stop it before editing that file. Its Docker network
+is pinned to `172.31.0.0/16` to avoid overlapping the compose network.
+
+Game containers and the `pterodactyl_nw` network are created directly on the Docker daemon, outside the compose project,
+so `docker compose down` will not remove them.
+
+### Checks
+
+```bash
+cd resources/app
+pnpm typecheck
+pnpm test
+```
+
+## Building and deploying
+
+The `Dockerfile` builds both frontends: stage 0 runs the legacy yarn/webpack build into `public/assets`, stage 1 runs
+`pnpm build` into `public/build`, and both are copied into the final image. That means one image can serve either UI
+depending on the flags.
+
+`.github/workflows/docker-fork.yaml` builds and pushes `ghcr.io/<owner>/<repo>` on pushes to `main` / `feat/new-ui` and
+on `fork-v*` tags.
+
+To deploy, point the panel service at the fork's image and set the flags. The container needs a persistent volume at
+`/app/var`, which is where the entrypoint stores the generated `APP_KEY`; without it the panel returns 500s. No database
+migrations are introduced by this fork, so rolling back is just changing the image tag.
+
+## Staying current with upstream
+
+```bash
+git fetch upstream
+git rebase upstream/1.0-develop
+```
+
+Conflicts are limited to the files listed under [Layout](#layout).

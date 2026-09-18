@@ -9,11 +9,23 @@ RUN yarn install --frozen-lockfile \
     && yarn run build:production
 
 # Stage 1:
+# Build the Vite powered interface that lives in resources/app. It is served instead of the
+# assets above when APP_NEW_UI / APP_NEW_ADMIN are enabled.
+FROM --platform=$TARGETOS/$TARGETARCH node:22-alpine
+WORKDIR /app
+COPY resources/app ./resources/app
+RUN npm install --global pnpm@8.9.0 \
+    && cd resources/app \
+    && pnpm install --frozen-lockfile \
+    && pnpm run build
+
+# Stage 2:
 # Build the actual container with all of the needed PHP dependencies that will run the application.
 FROM --platform=$TARGETOS/$TARGETARCH php:8.3-fpm-alpine
 WORKDIR /app
 COPY . ./
 COPY --from=0 /app/public/assets ./public/assets
+COPY --from=1 /app/public/build ./public/build
 RUN apk add --no-cache --update ca-certificates dcron curl git supervisor tar unzip nginx libpng-dev libxml2-dev libzip-dev certbot certbot-nginx mysql-client \
     && docker-php-ext-configure zip \
     && docker-php-ext-install bcmath gd pdo_mysql zip \

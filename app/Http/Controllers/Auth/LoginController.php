@@ -20,7 +20,7 @@ class LoginController extends AbstractLoginController
      */
     public function index(): View
     {
-        return view('templates/auth.core');
+        return view(config('ui.new_ui') ? 'templates/app' : 'templates/auth.core');
     }
 
     /**

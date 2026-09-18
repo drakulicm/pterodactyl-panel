@@ -2,7 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 use Pterodactyl\Http\Controllers\Admin;
+use Pterodactyl\Http\Controllers\Base\IndexController;
 use Pterodactyl\Http\Middleware\Admin\Servers\ServerInstalled;
+
+if (config('ui.new_admin')) {
+    Route::get('/{react?}', [IndexController::class, 'index'])->where('react', '.*')->name('admin.index');
+
+    return;
+}
 
 Route::get('/', [Admin\BaseController::class, 'index'])->name('admin.index');
 

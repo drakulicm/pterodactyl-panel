@@ -122,3 +122,116 @@ Route::group(['prefix' => '/nests'], function () {
         Route::get('/{egg:id}', [Application\Nests\EggController::class, 'view'])->name('api.application.nests.eggs.view');
     });
 });
+
+/*
+|--------------------------------------------------------------------------
+| Administrative UI Routes
+|--------------------------------------------------------------------------
+|
+| Everything below this point was added for the administrative area of the
+| new UI. Routes are only ever appended here to keep this file easy to rebase
+| onto upstream. Endpoints flagged as "session only" reject API keys.
+|
+*/
+
+// Endpoint: /api/application/version (session only)
+Route::get('/version', Application\VersionController::class)->name('api.application.version');
+
+// Endpoint: /api/application/database-hosts
+Route::group(['prefix' => '/database-hosts'], function () {
+    Route::get('/', [Application\DatabaseHosts\DatabaseHostController::class, 'index'])->name('api.application.database-hosts');
+    Route::get('/{host:id}', [Application\DatabaseHosts\DatabaseHostController::class, 'view'])->name('api.application.database-hosts.view');
+
+    Route::post('/', [Application\DatabaseHosts\DatabaseHostController::class, 'store']);
+    Route::patch('/{host:id}', [Application\DatabaseHosts\DatabaseHostController::class, 'update']);
+
+    Route::delete('/{host:id}', [Application\DatabaseHosts\DatabaseHostController::class, 'delete']);
+});
+
+// Endpoint: /api/application/mounts (session only)
+Route::group(['prefix' => '/mounts'], function () {
+    Route::get('/', [Application\Mounts\MountController::class, 'index'])->name('api.application.mounts');
+    Route::get('/{mount:id}', [Application\Mounts\MountController::class, 'view'])->name('api.application.mounts.view');
+
+    Route::post('/', [Application\Mounts\MountController::class, 'store']);
+    Route::post('/{mount:id}/eggs', [Application\Mounts\MountController::class, 'addEggs']);
+    Route::post('/{mount:id}/nodes', [Application\Mounts\MountController::class, 'addNodes']);
+    Route::patch('/{mount:id}', [Application\Mounts\MountController::class, 'update']);
+
+    Route::delete('/{mount:id}', [Application\Mounts\MountController::class, 'delete']);
+    Route::delete('/{mount:id}/eggs/{egg:id}', [Application\Mounts\MountController::class, 'deleteEgg']);
+    Route::delete('/{mount:id}/nodes/{node:id}', [Application\Mounts\MountController::class, 'deleteNode']);
+});
+
+// Endpoint: /api/application/servers/{server}/mounts (session only)
+Route::group(['prefix' => '/servers/{server:id}/mounts'], function () {
+    Route::get('/', [Application\Servers\ServerMountController::class, 'index'])->name('api.application.servers.mounts');
+    Route::post('/', [Application\Servers\ServerMountController::class, 'store']);
+    Route::delete('/{mount:id}', [Application\Servers\ServerMountController::class, 'delete']);
+});
+
+// Endpoint: /api/application/servers/{server}
+Route::group(['prefix' => '/servers/{server:id}'], function () {
+    Route::post('/transfer', Application\Servers\ServerTransferController::class)->name('api.application.servers.transfer');
+    Route::post('/toggle-install', Application\Servers\ServerInstallController::class)->name('api.application.servers.toggle-install');
+});
+
+// Endpoint: /api/application/nests
+Route::group(['prefix' => '/nests'], function () {
+    Route::post('/', [Application\Nests\NestManagementController::class, 'store']);
+    Route::post('/{nest:id}/import', [Application\Nests\NestManagementController::class, 'import']);
+    Route::patch('/{nest:id}', [Application\Nests\NestManagementController::class, 'update']);
+    Route::delete('/{nest:id}', [Application\Nests\NestManagementController::class, 'delete']);
+
+    // Endpoint: /api/application/nests/{nest}/eggs
+    Route::group(['prefix' => '/{nest:id}/eggs'], function () {
+        Route::get('/{egg:id}/export', [Application\Nests\EggManagementController::class, 'export'])->name('api.application.nests.eggs.export');
+
+        Route::post('/', [Application\Nests\EggManagementController::class, 'store']);
+        Route::put('/{egg:id}/import', [Application\Nests\EggManagementController::class, 'import']);
+        Route::patch('/{egg:id}', [Application\Nests\EggManagementController::class, 'update']);
+        Route::patch('/{egg:id}/script', [Application\Nests\EggManagementController::class, 'script']);
+
+        Route::delete('/{egg:id}', [Application\Nests\EggManagementController::class, 'delete']);
+
+        // Endpoint: /api/application/nests/{nest}/eggs/{egg}/variables
+        Route::group(['prefix' => '/{egg:id}/variables'], function () {
+            Route::get('/', [Application\Nests\EggVariableController::class, 'index'])->name('api.application.nests.eggs.variables');
+            Route::post('/', [Application\Nests\EggVariableController::class, 'store']);
+            Route::patch('/{variable:id}', [Application\Nests\EggVariableController::class, 'update']);
+            Route::delete('/{variable:id}', [Application\Nests\EggVariableController::class, 'delete']);
+        });
+    });
+});
+
+// Endpoint: /api/application/nodes/{node}
+Route::group(['prefix' => '/nodes/{node:id}'], function () {
+    Route::get('/system-information', Application\Nodes\NodeSystemInformationController::class)->name('api.application.nodes.system-information');
+    Route::post('/auto-deploy-token', Application\Nodes\NodeAutoDeployController::class)->name('api.application.nodes.auto-deploy-token');
+
+    Route::patch('/allocations/{allocation:id}', [Application\Nodes\AllocationManagementController::class, 'update']);
+    Route::delete('/allocations', [Application\Nodes\AllocationManagementController::class, 'delete']);
+});
+
+// Endpoint: /api/application/settings (session only)
+Route::group(['prefix' => '/settings'], function () {
+    Route::get('/general', [Application\Settings\SettingsController::class, 'general'])->name('api.application.settings.general');
+    Route::patch('/general', [Application\Settings\SettingsController::class, 'updateGeneral']);
+
+    Route::get('/mail', [Application\Settings\SettingsController::class, 'mail'])->name('api.application.settings.mail');
+    Route::patch('/mail', [Application\Settings\SettingsController::class, 'updateMail']);
+    Route::post('/mail/test', [Application\Settings\SettingsController::class, 'testMail']);
+
+    Route::get('/advanced', [Application\Settings\SettingsController::class, 'advanced'])->name('api.application.settings.advanced');
+    Route::patch('/advanced', [Application\Settings\SettingsController::class, 'updateAdvanced']);
+});
+
+// Endpoint: /api/application/api-keys (session only)
+Route::group(['prefix' => '/api-keys'], function () {
+    Route::get('/', [Application\ApiKeys\ApiKeyController::class, 'index'])->name('api.application.api-keys');
+    Route::get('/resources', [Application\ApiKeys\ApiKeyController::class, 'resources'])->name('api.application.api-keys.resources');
+
+    Route::post('/', [Application\ApiKeys\ApiKeyController::class, 'store']);
+
+    Route::delete('/{identifier}', [Application\ApiKeys\ApiKeyController::class, 'delete']);
+});

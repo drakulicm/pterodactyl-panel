@@ -4,6 +4,7 @@ namespace Pterodactyl\Transformers\Api\Application;
 
 use Pterodactyl\Models\Server;
 use League\Fractal\Resource\Item;
+use Pterodactyl\Models\ServerTransfer;
 use League\Fractal\Resource\Collection;
 use League\Fractal\Resource\NullResource;
 use Pterodactyl\Services\Acl\Api\AdminAcl;
@@ -234,5 +235,25 @@ class ServerTransformer extends BaseTransformer
         $server->loadMissing('databases');
 
         return $this->collection($server->getRelation('databases'), $this->makeTransformer(ServerDatabaseTransformer::class), 'databases');
+    }
+
+    /**
+     * Return the in-progress transfer for this server, if one exists.
+     *
+     * @throws \Pterodactyl\Exceptions\Transformer\InvalidTransformerLevelException
+     */
+    public function includeTransfer(Server $server): Item|NullResource
+    {
+        if (!$this->authorize(AdminAcl::RESOURCE_SERVERS)) {
+            return $this->null();
+        }
+
+        $server->loadMissing('transfer');
+
+        if (is_null($transfer = $server->getRelation('transfer'))) {
+            return $this->null();
+        }
+
+        return $this->item($transfer, $this->makeTransformer(ServerTransferTransformer::class), ServerTransfer::RESOURCE_NAME);
     }
 }
