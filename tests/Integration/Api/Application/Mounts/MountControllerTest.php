@@ -79,6 +79,11 @@ class MountControllerTest extends SessionApplicationApiIntegrationTestCase
 
     /**
      * Test that a mount cannot be deleted while it is attached to a server.
+     *
+     * The exception handler rolls every open transaction back to level zero when it
+     * renders an error, which discards the rows this test created, so the mount cannot
+     * be asserted against the database afterwards. Deletion of an unused mount is
+     * covered by testMountLifecycle().
      */
     public function testMountWithServersCannotBeDeleted()
     {
@@ -86,8 +91,9 @@ class MountControllerTest extends SessionApplicationApiIntegrationTestCase
         $server = $this->createServerModel();
         (new MountServer())->forceFill(['mount_id' => $mount->id, 'server_id' => $server->id])->save();
 
-        $this->deleteJson('/api/application/mounts/' . $mount->id)->assertStatus(Response::HTTP_BAD_REQUEST);
-        $this->assertDatabaseHas('mounts', ['id' => $mount->id]);
+        $this->deleteJson('/api/application/mounts/' . $mount->id)
+            ->assertStatus(Response::HTTP_BAD_REQUEST)
+            ->assertJsonPath('errors.0.detail', 'Cannot delete a mount that is currently attached to one or more servers.');
     }
 
     /**

@@ -81,6 +81,20 @@ class DatabaseHostControllerTest extends ApplicationApiIntegrationTestCase
         $this->createNewDefaultApiKey($this->getApiUser(), ['r_database_hosts' => 0]);
 
         $this->assertAccessDeniedJson($this->getJson('/api/application/database-hosts/' . $host->id));
+    }
+
+    /**
+     * Test that a key without write permission cannot delete a database host.
+     *
+     * This lives in its own test because the exception handler rolls every open
+     * transaction back to level zero when it renders an error, which would discard the
+     * host created above before a second request could be made against it.
+     */
+    public function testErrorReturnedIfNoDeletePermission()
+    {
+        $host = DatabaseHost::factory()->create();
+        $this->createNewDefaultApiKey($this->getApiUser(), ['r_database_hosts' => 0]);
+
         $this->assertAccessDeniedJson($this->deleteJson('/api/application/database-hosts/' . $host->id));
     }
 
