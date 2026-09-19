@@ -1,6 +1,6 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { InboxIcon, SearchIcon } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { FormError } from '@/components/auth/FormError';
 import { ListPagination } from '@/components/layout/ListPagination';
@@ -8,6 +8,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { httpErrorToHuman, type PaginatedResult } from '@/lib/http';
 import { cn } from '@/lib/utils';
 
@@ -45,6 +46,14 @@ const AdminDataTable = <Row,>({
     toolbar,
 }: AdminDataTableProps<Row>) => {
     const { data, error, isPending } = query;
+    const [value, setValue] = useState(search ?? '');
+    const debounced = useDebouncedValue(value);
+    const handleSearchChange = useRef(onSearchChange);
+    handleSearchChange.current = onSearchChange;
+
+    useEffect(() => {
+        handleSearchChange.current?.(debounced);
+    }, [debounced]);
 
     return (
         <div className='flex flex-col gap-4'>
@@ -54,8 +63,8 @@ const AdminDataTable = <Row,>({
                         <InputGroup className='max-w-sm'>
                             <InputGroupInput
                                 placeholder={searchPlaceholder}
-                                value={search ?? ''}
-                                onChange={(event) => onSearchChange(event.target.value)}
+                                value={value}
+                                onChange={(event) => setValue(event.target.value)}
                             />
                             <InputGroupAddon>
                                 <SearchIcon />
