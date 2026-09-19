@@ -17,7 +17,9 @@ const UploadStatus: React.FC = () => {
     return (
         <div className='fixed right-4 bottom-4 z-40 flex w-80 flex-col gap-3 rounded-xl border bg-popover p-3 shadow-lg'>
             <div className='flex items-center justify-between'>
-                <span className='text-sm font-medium'>Uploading {uploads.length} file(s)</span>
+                <span className='text-sm font-medium'>
+                    Uploading {uploads.length} {uploads.length === 1 ? 'file' : 'files'}
+                </span>
                 <Button variant='ghost' size='sm' onClick={clearUploads}>
                     Cancel all
                 </Button>
