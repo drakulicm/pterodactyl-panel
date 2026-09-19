@@ -88,15 +88,15 @@ const ServerFilesPage: React.FC = () => {
                     <>
                         <Button size='sm' variant='outline' onClick={() => setDialog({ type: 'new-directory' })}>
                             <FolderPlusIcon />
-                            <span className='hidden md:inline'>New folder</span>
+                            <span className='sr-only md:not-sr-only'>New folder</span>
                         </Button>
                         <Button size='sm' variant='outline' onClick={() => setDialog({ type: 'pull' })}>
                             <LinkIcon />
-                            <span className='hidden md:inline'>From URL</span>
+                            <span className='sr-only md:not-sr-only'>From URL</span>
                         </Button>
                         <Button size='sm' variant='outline' onClick={() => fileInput.current?.click()}>
                             <UploadIcon />
-                            <span className='hidden md:inline'>Upload</span>
+                            <span className='sr-only md:not-sr-only'>Upload</span>
                         </Button>
                         <Button
                             size='sm'
@@ -105,7 +105,7 @@ const ServerFilesPage: React.FC = () => {
                             }
                         >
                             <FilePlusIcon />
-                            <span className='hidden md:inline'>New file</span>
+                            <span className='sr-only md:not-sr-only'>New file</span>
                         </Button>
                         <input ref={fileInput} type='file' multiple className='hidden' onChange={handleFileInputChange} />
                     </>
