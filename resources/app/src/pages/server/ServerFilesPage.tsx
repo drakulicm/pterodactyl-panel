@@ -12,7 +12,7 @@ import {
     Trash2Icon,
     UploadIcon,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { directoryQueryOptions, type FileObject } from '@/api/server/files';
 import { FormError } from '@/components/auth/FormError';
@@ -112,8 +112,12 @@ const ServerFilesPage: React.FC = () => {
     const canArchive = hasPermission(permissions, 'file.archive');
     const canDelete = hasPermission(permissions, 'file.delete');
     const query = filter.trim().toLowerCase();
-    const matches = data ? data.filter((file) => file.name.toLowerCase().includes(query)) : [];
-    const files = sortFiles(matches, sort);
+    const files = useMemo(() => {
+        const matches = data ? data.filter((file) => file.name.toLowerCase().includes(query)) : [];
+
+        return sortFiles(matches, sort);
+    }, [data, query, sort]);
+    const selectedNames = useMemo(() => new Set(selected), [selected]);
 
     useEffect(() => {
         setFilter('');
@@ -286,7 +290,7 @@ const ServerFilesPage: React.FC = () => {
                                 key={file.key}
                                 file={file}
                                 directory={directory}
-                                isSelected={selected.includes(file.name)}
+                                isSelected={selectedNames.has(file.name)}
                                 actions={actions}
                                 onSelectedChange={(isSelected) => handleSelectedChange(file.name, isSelected)}
                                 onDialog={setDialog}
