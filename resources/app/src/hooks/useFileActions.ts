@@ -20,41 +20,53 @@ const useFileActions = (uuid: string, directory: string) => {
 
     const invalidate = () => queryClient.invalidateQueries({ queryKey: ['server', uuid, 'files'] });
     const handleError = (error: unknown) => toast.error(httpErrorToHuman(error));
-    const options = { onSuccess: invalidate, onError: handleError };
+    const countFiles = (count: number): string => `${count} ${count === 1 ? 'file' : 'files'}`;
+
+    const succeed = (message: string) => {
+        invalidate();
+        toast.success(message);
+    };
 
     const rename = useMutation({
         mutationFn: (files: { from: string; to: string }[]) => renameFiles(uuid, directory, files),
-        ...options,
+        onSuccess: (_, files) => succeed(files.length === 1 ? 'File moved.' : `Moved ${countFiles(files.length)}.`),
+        onError: handleError,
     });
 
     const copy = useMutation({
         mutationFn: (name: string) => copyFile(uuid, joinPath(directory, name)),
-        ...options,
+        onSuccess: () => succeed('File copied.'),
+        onError: handleError,
     });
 
     const remove = useMutation({
         mutationFn: (names: string[]) => deleteFiles(uuid, directory, names),
-        ...options,
+        onSuccess: (_, names) => succeed(`Deleted ${countFiles(names.length)}.`),
+        onError: handleError,
     });
 
     const makeDirectory = useMutation({
         mutationFn: (name: string) => createDirectory(uuid, directory, name),
-        ...options,
+        onSuccess: () => succeed('Directory created.'),
+        onError: handleError,
     });
 
     const compress = useMutation({
         mutationFn: (names: string[]) => compressFiles(uuid, directory, names),
-        ...options,
+        onSuccess: () => succeed('Archive created.'),
+        onError: handleError,
     });
 
     const decompress = useMutation({
         mutationFn: (name: string) => decompressFile(uuid, directory, name),
-        ...options,
+        onSuccess: () => succeed('Archive extracted.'),
+        onError: handleError,
     });
 
     const chmod = useMutation({
         mutationFn: (files: { file: string; mode: string }[]) => chmodFiles(uuid, directory, files),
-        ...options,
+        onSuccess: () => succeed('Permissions updated.'),
+        onError: handleError,
     });
 
     const pull = useMutation({
