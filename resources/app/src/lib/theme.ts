@@ -1,7 +1,6 @@
 type Theme = 'light' | 'dark' | 'system';
 type ResolvedTheme = 'light' | 'dark';
 
-// Kept in sync with the inline no-flash script in resources/views/templates/app.blade.php.
 const THEME_STORAGE_KEY = 'pterodactyl:theme';
 
 const THEMES = ['light', 'dark', 'system'] as const satisfies readonly Theme[];
@@ -27,7 +26,6 @@ const applyTheme = (theme: Theme): void => {
     document.documentElement.style.colorScheme = resolved;
 };
 
-/** Keeps the document in sync with the OS while the stored preference is `system`. */
 const watchSystemTheme = (): void => {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
         if (getStoredTheme() === 'system') {

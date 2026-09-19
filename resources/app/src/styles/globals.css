@@ -52,7 +52,6 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Neutrals carry a slight hue-265 tint so both modes read as the same product. */
 :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0.006 265);
@@ -139,5 +138,26 @@
     }
   html {
     @apply font-sans;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        --tw-enter-translate-x: 0 !important;
+        --tw-enter-translate-y: 0 !important;
+        --tw-enter-scale: 1 !important;
+        --tw-enter-rotate: 0 !important;
+        --tw-exit-translate-x: 0 !important;
+        --tw-exit-translate-y: 0 !important;
+        --tw-exit-scale: 1 !important;
+        --tw-exit-rotate: 0 !important;
+        transition-property: opacity, color, background-color, border-color, outline-color, fill, stroke,
+            box-shadow !important;
+    }
+
+    [data-slot='sheet-content'] {
+        translate: none !important;
     }
 }

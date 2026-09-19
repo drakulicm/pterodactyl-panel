@@ -15,7 +15,9 @@ React 19, Vite, TypeScript strict (`noUncheckedIndexedAccess`), Tailwind v4, sha
 - No code comments. No inline styles. No native `<button>`: use `@/components/ui/button`.
 - Early returns. Event handlers are named `handleX`. Booleans are `isX` / `hasX` / `canX`.
 - No prop drilling of server data: call `useServer()` (`src/hooks/useServer.ts`) which returns `{ server, permissions }`.
-- Animations: `ease-out`, 200ms (`transition-colors duration-200`). Dark theme only (`<body class="dark">`), use semantic tokens (`bg-card`, `text-muted-foreground`, `border`).
+- Animations: `ease-out`, 200ms (`transition-colors duration-200`). Reduced motion is handled globally in `src/styles/globals.css`, which strips movement but keeps fades and colour changes, so components do not need `motion-reduce:` variants.
+- Use semantic tokens (`bg-card`, `text-muted-foreground`, `border`, `text-success`, `text-warning`, `text-destructive`) — never Tailwind palette literals like `text-emerald-500`, which do not follow the theme.
+- Light and dark are both supported. The theme lives in `src/lib/theme.ts` + `src/stores/themeStore.ts`, and the `pterodactyl:theme` storage key is mirrored in the pre-paint script in `resources/views/templates/app.blade.php` — change one and you must change the other.
 
 ## Data
 
