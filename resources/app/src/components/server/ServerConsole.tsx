@@ -1,13 +1,14 @@
 import '@xterm/xterm/css/xterm.css';
 
 import { FitAddon } from '@xterm/addon-fit';
-import { SearchAddon } from '@xterm/addon-search';
+import { type ISearchOptions, SearchAddon } from '@xterm/addon-search';
 import { Unicode11Addon } from '@xterm/addon-unicode11';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import { type ITheme, Terminal } from '@xterm/xterm';
-import { ChevronRightIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronRightIcon, ChevronUpIcon, SearchIcon, XIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { usePersistedState } from '@/hooks/usePersistedState';
@@ -24,6 +25,25 @@ const RESET = `${ESCAPE}[0m`;
 const TERMINAL_PRELUDE = `${ESCAPE}[1m${ESCAPE}[33mcontainer@pterodactyl~ ${RESET}`;
 const ERROR_STYLE = `${ESCAPE}[1m${ESCAPE}[41m`;
 const HISTORY_LIMIT = 32;
+
+const SEARCH_OPTIONS: Record<ResolvedTheme, ISearchOptions> = {
+    dark: {
+        decorations: {
+            matchBackground: '#44403c',
+            matchOverviewRuler: '#a1a1aa',
+            activeMatchBackground: '#a16207',
+            activeMatchColorOverviewRuler: '#facc15',
+        },
+    },
+    light: {
+        decorations: {
+            matchBackground: '#e4e4e7',
+            matchOverviewRuler: '#71717a',
+            activeMatchBackground: '#fde047',
+            activeMatchColorOverviewRuler: '#ca8a04',
+        },
+    },
+};
 
 const TERMINAL_THEMES: Record<ResolvedTheme, ITheme> = {
     dark: {
@@ -78,6 +98,10 @@ const ServerConsole: React.FC = () => {
     const isConnected = useServerStore((state) => state.isConnected);
     const container = useRef<HTMLDivElement>(null);
     const terminal = useRef<Terminal | null>(null);
+    const search = useRef<SearchAddon | null>(null);
+    const searchInput = useRef<HTMLInputElement>(null);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [searchResults, setSearchResults] = useState({ resultIndex: -1, resultCount: 0 });
     const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
     const [history, setHistory] = usePersistedState<string[]>(`${server.id}:command_history`, []);
     const [historyIndex, setHistoryIndex] = useState(-1);
@@ -106,9 +130,10 @@ const ServerConsole: React.FC = () => {
             theme: TERMINAL_THEMES[useThemeStore.getState().resolvedTheme],
         });
         const fitAddon = new FitAddon();
+        const searchAddon = new SearchAddon();
 
         instance.loadAddon(fitAddon);
-        instance.loadAddon(new SearchAddon());
+        instance.loadAddon(searchAddon);
         instance.loadAddon(new WebLinksAddon());
         instance.loadAddon(new Unicode11Addon());
         instance.unicode.activeVersion = '11';
@@ -122,19 +147,36 @@ const ServerConsole: React.FC = () => {
                 return false;
             }
 
+            if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+                setIsSearchOpen(true);
+
+                return false;
+            }
+
             return true;
         });
+
+        searchAddon.onDidChangeResults(setSearchResults);
 
         const observer = new ResizeObserver(() => fitAddon.fit());
         observer.observe(element);
         terminal.current = instance;
+        search.current = searchAddon;
 
         return () => {
             observer.disconnect();
             instance.dispose();
             terminal.current = null;
+            search.current = null;
         };
     }, []);
+
+    useEffect(() => {
+        if (isSearchOpen) {
+            searchInput.current?.focus();
+            searchInput.current?.select();
+        }
+    }, [isSearchOpen]);
 
     useEffect(() => {
         if (terminal.current) {
@@ -165,6 +207,51 @@ const ServerConsole: React.FC = () => {
             writeLine('Transfer has failed.', true);
         }
     });
+
+    const handleFind = (direction: 'next' | 'previous') => {
+        const term = searchInput.current?.value ?? '';
+        if (term.length === 0) {
+            search.current?.clearDecorations();
+            setSearchResults({ resultIndex: -1, resultCount: 0 });
+
+            return;
+        }
+
+        const options = SEARCH_OPTIONS[resolvedTheme];
+        if (direction === 'next') {
+            search.current?.findNext(term, options);
+
+            return;
+        }
+
+        search.current?.findPrevious(term, options);
+    };
+
+    const handleSearchClose = () => {
+        search.current?.clearDecorations();
+        setSearchResults({ resultIndex: -1, resultCount: 0 });
+        setIsSearchOpen(false);
+    };
+
+    const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Escape') {
+            handleSearchClose();
+
+            return;
+        }
+
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            handleFind(event.shiftKey ? 'previous' : 'next');
+        }
+    };
+
+    const handleConsoleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+            event.preventDefault();
+            setIsSearchOpen(true);
+        }
+    };
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'ArrowUp') {
@@ -197,7 +284,43 @@ const ServerConsole: React.FC = () => {
     };
 
     return (
-        <div className='relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border bg-terminal'>
+        <div
+            className='relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border bg-terminal'
+            onKeyDown={handleConsoleKeyDown}
+        >
+            {isSearchOpen && (
+                <div className='absolute top-2 right-2 z-20 flex items-center gap-1 rounded-lg border bg-popover p-1 shadow-lg'>
+                    <SearchIcon className='ml-1 size-3.5 shrink-0 text-muted-foreground' />
+                    <Input
+                        ref={searchInput}
+                        aria-label='Search the console output.'
+                        placeholder='Find in console...'
+                        autoCorrect='off'
+                        autoCapitalize='none'
+                        spellCheck={false}
+                        className='h-7 w-40 border-0 bg-transparent px-1 text-xs shadow-none focus-visible:ring-0 dark:bg-transparent sm:w-52'
+                        onKeyDown={handleSearchKeyDown}
+                        onChange={() => handleFind('next')}
+                    />
+                    <span className='w-16 shrink-0 text-center text-xs text-muted-foreground tabular-nums'>
+                        {searchResults.resultCount > 0 ? `${searchResults.resultIndex + 1} of ${searchResults.resultCount}` : 'No results'}
+                    </span>
+                    <Button
+                        variant='ghost'
+                        size='icon-sm'
+                        aria-label='Previous match'
+                        onClick={() => handleFind('previous')}
+                    >
+                        <ChevronUpIcon />
+                    </Button>
+                    <Button variant='ghost' size='icon-sm' aria-label='Next match' onClick={() => handleFind('next')}>
+                        <ChevronDownIcon />
+                    </Button>
+                    <Button variant='ghost' size='icon-sm' aria-label='Close search' onClick={handleSearchClose}>
+                        <XIcon />
+                    </Button>
+                </div>
+            )}
             {!isConnected && (
                 <div className='absolute inset-0 z-10 flex items-center justify-center bg-background/60'>
                     <Spinner className='size-6' />
