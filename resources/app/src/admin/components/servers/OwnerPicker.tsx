@@ -1,23 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { CheckIcon, SearchIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { type AdminServerUser, userSearchQueryOptions } from '@/admin/api/servers';
 import { Button } from '@/components/ui/button';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Spinner } from '@/components/ui/spinner';
-
-const useDebouncedValue = (value: string, delay: number): string => {
-    const [debounced, setDebounced] = useState(value);
-
-    useEffect(() => {
-        const timeout = window.setTimeout(() => setDebounced(value), delay);
-
-        return () => window.clearTimeout(timeout);
-    }, [value, delay]);
-
-    return debounced;
-};
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 
 const OwnerPicker: React.FC<{
     value: number | null;
