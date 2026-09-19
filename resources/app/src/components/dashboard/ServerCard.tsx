@@ -7,6 +7,7 @@ import { serverResourcesQueryOptions } from '@/api/servers';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useInViewport } from '@/hooks/useInViewport';
 import { bytesToString, formatIp, mbToBytes } from '@/lib/format';
 import { POWER_STATE_CLASSES } from '@/lib/powerState';
 import { cn } from '@/lib/utils';
@@ -59,8 +60,11 @@ const Stat: React.FC<{
 const ServerCard: React.FC<{
     server: Server;
 }> = ({ server }) => {
+    const [cardRef, isInViewport] = useInViewport<HTMLDivElement>();
     const canQueryResources = !server.status && !server.isTransferring && !server.isNodeUnderMaintenance;
-    const { data: stats, isError } = useQuery(serverResourcesQueryOptions(server.uuid, canQueryResources));
+    const { data: stats, isError } = useQuery(
+        serverResourcesQueryOptions(server.uuid, canQueryResources && isInViewport),
+    );
 
     const allocation = server.allocations.find((item) => item.isDefault);
     const statusLabel = getStatusLabel(server, stats?.isSuspended ?? false);
@@ -70,7 +74,10 @@ const ServerCard: React.FC<{
 
     return (
         <Link to='/server/$id' params={{ id: server.id }} className='group/server block rounded-xl outline-none'>
-            <Card className='h-full transition-colors duration-200 ease-out group-hover/server:bg-muted/40 group-focus-visible/server:ring-3 group-focus-visible/server:ring-ring/50'>
+            <Card
+                ref={cardRef}
+                className='h-full transition-colors duration-200 ease-out group-hover/server:bg-muted/40 group-focus-visible/server:ring-3 group-focus-visible/server:ring-ring/50'
+            >
                 <CardHeader>
                     <CardTitle className='flex items-center gap-2'>
                         <span
