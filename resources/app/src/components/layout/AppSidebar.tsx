@@ -2,6 +2,7 @@ import { Link, useParams, useRouterState } from '@tanstack/react-router';
 import {
     HistoryIcon,
     KeyRoundIcon,
+    SearchIcon,
     ServerIcon,
     ShieldIcon,
     TerminalIcon,
@@ -25,6 +26,8 @@ import {
 } from '@/components/ui/sidebar';
 import { isNewAdminEnabled, sessionUser, siteConfiguration } from '@/lib/session';
 
+const isApplePlatform = /mac|iphone|ipad/i.test(navigator.userAgent);
+
 const ACCOUNT_LINKS = [
     { to: '/account', label: 'Account', icon: UserIcon },
     { to: '/account/api', label: 'API Credentials', icon: TerminalIcon },
@@ -32,7 +35,9 @@ const ACCOUNT_LINKS = [
     { to: '/account/activity', label: 'Activity', icon: HistoryIcon },
 ] as const;
 
-const AppSidebar: React.FC = () => {
+const AppSidebar: React.FC<{
+    onSearchOpen: () => void;
+}> = ({ onSearchOpen }) => {
     const pathname = useRouterState({ select: (state) => state.location.pathname });
     const { id: serverId } = useParams({ strict: false });
 
@@ -55,6 +60,15 @@ const AppSidebar: React.FC = () => {
                     <SidebarGroupLabel>Panel</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton tooltip='Search' onClick={onSearchOpen}>
+                                    <SearchIcon />
+                                    <span>Search</span>
+                                    <kbd className='ml-auto font-mono text-xs text-muted-foreground'>
+                                        {isApplePlatform ? '⌘K' : 'Ctrl K'}
+                                    </kbd>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
                             <SidebarMenuItem>
                                 <SidebarMenuButton
                                     isActive={pathname === '/'}
@@ -101,4 +115,4 @@ const AppSidebar: React.FC = () => {
     );
 };
 
-export { AppSidebar };
+export { ACCOUNT_LINKS, AppSidebar };

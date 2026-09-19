@@ -83,4 +83,4 @@ const ServerNav: React.FC<{
     );
 };
 
-export { ServerNav };
+export { SERVER_LINKS, ServerNav };
