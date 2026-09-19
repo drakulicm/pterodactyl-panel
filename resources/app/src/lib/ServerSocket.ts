@@ -64,6 +64,11 @@ class ServerSocket {
         this.socket?.close(code, reason);
     };
 
+    dispose = (): void => {
+        this.close();
+        this.listeners.clear();
+    };
+
     send = (event: string, payload?: string | string[]): void => {
         this.socket?.json({ event, args: Array.isArray(payload) ? payload : [payload] });
     };

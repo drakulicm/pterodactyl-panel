@@ -78,7 +78,12 @@ const ServerConsole: React.FC = () => {
 
         instance.attachCustomKeyEventHandler((event) => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
-                navigator.clipboard.writeText(instance.getSelection());
+                const selection = instance.getSelection();
+                if (selection.length === 0) {
+                    return true;
+                }
+
+                navigator.clipboard.writeText(selection);
 
                 return false;
             }

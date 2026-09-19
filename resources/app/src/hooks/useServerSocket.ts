@@ -64,7 +64,7 @@ const useServerSocket = (uuid: string | undefined): void => {
                     return;
                 }
 
-                socket.close();
+                socket.dispose();
                 setSocketError('connecting');
                 setIsConnected(false);
                 setSocket(null);
@@ -89,7 +89,7 @@ const useServerSocket = (uuid: string | undefined): void => {
 
         return () => {
             isDisposed = true;
-            active?.close();
+            active?.dispose();
             reset();
         };
     }, [uuid]);
