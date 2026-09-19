@@ -5,11 +5,14 @@ import { ServerStats } from '@/components/server/ServerStats';
 import { StatGraphs } from '@/components/server/StatGraphs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useServer } from '@/hooks/useServer';
+import { useServerStatsFeed } from '@/hooks/useServerStatsFeed';
 import { hasAnyPermission } from '@/lib/permissions';
 
 const ServerConsolePage: React.FC = () => {
     const { server, permissions } = useServer();
     const hasPowerControls = hasAnyPermission(permissions, ['control.start', 'control.stop', 'control.restart']);
+
+    useServerStatsFeed();
 
     return (
         <>

@@ -40,7 +40,6 @@
     "react-dom": "^19.3.0",
     "react-hook-form": "^7.88.0",
     "react-i18next": "^17.0.14",
-    "recharts": "3.8.0",
     "sockette": "^2.0.6",
     "sonner": "^2.0.8",
     "yaml": "^2.9.1",

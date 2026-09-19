@@ -1,104 +1,90 @@
-import { useEffect, useRef, useState } from 'react';
-import { Area, AreaChart, CartesianGrid, YAxis } from 'recharts';
-
-import { type ChartConfig, ChartContainer } from '@/components/ui/chart';
-import { useSocketEvent } from '@/hooks/useSocketEvent';
 import { bytesToString } from '@/lib/format';
-import { SocketEvent } from '@/lib/socketEvents';
-import { useServerStore } from '@/stores/serverStore';
+import { buildSparkline, TOP_INSET, VIEWBOX_HEIGHT, VIEWBOX_WIDTH } from '@/lib/sparkline';
+import { type StatsPoint, useStatsStore } from '@/stores/statsStore';
 
-interface Point {
-    index: number;
-    cpu: number;
-    memory: number;
-    rx: number;
-    tx: number;
-}
+type SeriesKey = keyof StatsPoint;
 
-const POINTS = 20;
+const GRID_LINES = [0, 1, 2, 3, 4].map((step) => TOP_INSET + (step * (VIEWBOX_HEIGHT - TOP_INSET)) / 4);
 
-const createEmptyPoints = (): Point[] =>
-    Array.from({ length: POINTS }, (_, index) => ({ index, cpu: 0, memory: 0, rx: 0, tx: 0 }));
+const SERIES_CLASSES: Record<SeriesKey, string> = {
+    cpu: 'text-chart-1',
+    memory: 'text-chart-2',
+    rx: 'text-chart-3',
+    tx: 'text-chart-4',
+};
 
-const CPU_CONFIG = { cpu: { label: 'CPU', color: 'var(--chart-1)' } } satisfies ChartConfig;
-const MEMORY_CONFIG = { memory: { label: 'Memory', color: 'var(--chart-2)' } } satisfies ChartConfig;
-const NETWORK_CONFIG = {
-    rx: { label: 'Inbound', color: 'var(--chart-3)' },
-    tx: { label: 'Outbound', color: 'var(--chart-4)' },
-} satisfies ChartConfig;
+const CPU_KEYS: SeriesKey[] = ['cpu'];
+const MEMORY_KEYS: SeriesKey[] = ['memory'];
+const NETWORK_KEYS: SeriesKey[] = ['rx', 'tx'];
+
+const Sparkline: React.FC<{
+    points: StatsPoint[];
+    keys: SeriesKey[];
+}> = ({ points, keys }) => {
+    const max = Math.max(1, ...keys.flatMap((key) => points.map((point) => point[key])));
+
+    return (
+        <svg
+            viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
+            preserveAspectRatio='none'
+            className='h-24 w-full'
+            aria-hidden='true'
+        >
+            {GRID_LINES.map((offset) => (
+                <line
+                    key={offset}
+                    x1={0}
+                    x2={VIEWBOX_WIDTH}
+                    y1={offset}
+                    y2={offset}
+                    className='stroke-border'
+                    strokeOpacity={0.4}
+                    vectorEffect='non-scaling-stroke'
+                />
+            ))}
+            {keys.map((key) => {
+                const { line, area } = buildSparkline(
+                    points.map((point) => point[key]),
+                    max,
+                );
+
+                return (
+                    <g key={key} className={SERIES_CLASSES[key]}>
+                        <path d={area} fill='currentColor' fillOpacity={0.15} stroke='none' />
+                        <path
+                            d={line}
+                            fill='none'
+                            stroke='currentColor'
+                            strokeWidth={1.5}
+                            strokeLinejoin='round'
+                            vectorEffect='non-scaling-stroke'
+                        />
+                    </g>
+                );
+            })}
+        </svg>
+    );
+};
 
 const GraphCard: React.FC<{
     title: string;
     value: string;
-    config: ChartConfig;
-    data: Point[];
-    keys: (keyof Point)[];
-}> = ({ title, value, config, data, keys }) => {
+    points: StatsPoint[];
+    keys: SeriesKey[];
+}> = ({ title, value, points, keys }) => {
     return (
         <div className='flex flex-col gap-2 rounded-xl border bg-card p-3'>
             <div className='flex items-center justify-between text-xs'>
                 <span className='text-muted-foreground'>{title}</span>
                 <span className='font-medium tabular-nums'>{value}</span>
             </div>
-            <ChartContainer config={config} className='aspect-auto h-24 w-full'>
-                <AreaChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
-                    <CartesianGrid vertical={false} strokeOpacity={0.4} />
-                    <YAxis hide domain={[0, (max: number) => Math.max(max, 1)]} />
-                    {keys.map((key) => (
-                        <Area
-                            key={key}
-                            dataKey={key}
-                            type='monotone'
-                            stroke={`var(--color-${key})`}
-                            fill={`var(--color-${key})`}
-                            fillOpacity={0.15}
-                            strokeWidth={1.5}
-                            isAnimationActive={false}
-                        />
-                    ))}
-                </AreaChart>
-            </ChartContainer>
+            <Sparkline points={points} keys={keys} />
         </div>
     );
 };
 
 const StatGraphs: React.FC = () => {
-    const powerState = useServerStore((state) => state.powerState);
-    const [points, setPoints] = useState<Point[]>(createEmptyPoints);
-    const previous = useRef<{ rx: number; tx: number } | null>(null);
-    const counter = useRef(POINTS);
-
-    useEffect(() => {
-        if (powerState === 'offline') {
-            setPoints(createEmptyPoints());
-            previous.current = null;
-        }
-    }, [powerState]);
-
-    useSocketEvent(SocketEvent.STATS, (data) => {
-        try {
-            const parsed = JSON.parse(data);
-            const rxTotal = parsed.network.rx_bytes as number;
-            const txTotal = parsed.network.tx_bytes as number;
-            const last = previous.current;
-            previous.current = { rx: rxTotal, tx: txTotal };
-            counter.current += 1;
-
-            setPoints((current) => [
-                ...current.slice(1),
-                {
-                    index: counter.current,
-                    cpu: parsed.cpu_absolute,
-                    memory: parsed.memory_bytes,
-                    rx: last ? Math.max(0, rxTotal - last.rx) : 0,
-                    tx: last ? Math.max(0, txTotal - last.tx) : 0,
-                },
-            ]);
-        } catch {
-            return;
-        }
-    });
-
+    const points = useStatsStore((state) => state.points);
     const latest = points[points.length - 1];
 
     return (
@@ -106,23 +92,20 @@ const StatGraphs: React.FC = () => {
             <GraphCard
                 title='CPU Load'
                 value={`${(latest?.cpu ?? 0).toFixed(2)}%`}
-                config={CPU_CONFIG}
-                data={points}
-                keys={['cpu']}
+                points={points}
+                keys={CPU_KEYS}
             />
             <GraphCard
                 title='Memory'
                 value={bytesToString(latest?.memory ?? 0)}
-                config={MEMORY_CONFIG}
-                data={points}
-                keys={['memory']}
+                points={points}
+                keys={MEMORY_KEYS}
             />
             <GraphCard
                 title='Network'
                 value={`${bytesToString(latest?.rx ?? 0)} in / ${bytesToString(latest?.tx ?? 0)} out`}
-                config={NETWORK_CONFIG}
-                data={points}
-                keys={['rx', 'tx']}
+                points={points}
+                keys={NETWORK_KEYS}
             />
         </div>
     );

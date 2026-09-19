@@ -7,25 +7,13 @@ import {
     MemoryStickIcon,
     NetworkIcon,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
 import { useServer } from '@/hooks/useServer';
-import { useSocketEvent } from '@/hooks/useSocketEvent';
 import { bytesToString, formatIp, formatUptime, mbToBytes } from '@/lib/format';
-import { SocketEvent, SocketRequest } from '@/lib/socketEvents';
 import { cn } from '@/lib/utils';
 import { useServerStore } from '@/stores/serverStore';
+import { useStatsStore } from '@/stores/statsStore';
 
-interface Stats {
-    memory: number;
-    cpu: number;
-    disk: number;
-    uptime: number;
-    rx: number;
-    tx: number;
-}
-
-const INITIAL_STATS: Stats = { memory: 0, cpu: 0, disk: 0, uptime: 0, rx: 0, tx: 0 };
 const UNLIMITED = 'Unlimited';
 
 const StatBlock: React.FC<{
@@ -58,32 +46,8 @@ const StatBlock: React.FC<{
 
 const ServerStats: React.FC = () => {
     const { server } = useServer();
-    const socket = useServerStore((state) => state.socket);
-    const isConnected = useServerStore((state) => state.isConnected);
     const powerState = useServerStore((state) => state.powerState);
-    const [stats, setStats] = useState<Stats>(INITIAL_STATS);
-
-    useEffect(() => {
-        if (socket && isConnected) {
-            socket.send(SocketRequest.SEND_STATS);
-        }
-    }, [socket, isConnected]);
-
-    useSocketEvent(SocketEvent.STATS, (data) => {
-        try {
-            const parsed = JSON.parse(data);
-            setStats({
-                memory: parsed.memory_bytes,
-                cpu: parsed.cpu_absolute,
-                disk: parsed.disk_bytes,
-                uptime: parsed.uptime ?? 0,
-                rx: parsed.network.rx_bytes,
-                tx: parsed.network.tx_bytes,
-            });
-        } catch {
-            return;
-        }
-    });
+    const stats = useStatsStore((state) => state.latest);
 
     const allocation = server.allocations.find((item) => item.isDefault);
     const isOffline = !powerState || powerState === 'offline';
