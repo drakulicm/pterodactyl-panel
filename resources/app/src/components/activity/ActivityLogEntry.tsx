@@ -2,6 +2,8 @@ import { format, formatDistanceToNowStrict } from 'date-fns';
 import { FolderOpenIcon, TerminalIcon } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import '@/lib/i18n';
+
 import type { ActivityLog } from '@/api/activity';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';

@@ -1,6 +1,5 @@
-import { createRoute, redirect } from '@tanstack/react-router';
+import { createRoute, lazyRouteComponent, redirect } from '@tanstack/react-router';
 
-import { AdminLayout } from '@/admin/components/AdminLayout';
 import { RouteError } from '@/components/layout/RouteError';
 import { sessionUser } from '@/lib/session';
 import { rootRoute } from '@/routes/root';
@@ -17,7 +16,7 @@ const adminRoute = createRoute({
             throw redirect({ to: '/' });
         }
     },
-    component: AdminLayout,
+    component: lazyRouteComponent(() => import('@/admin/components/AdminLayout'), 'AdminLayout'),
     errorComponent: RouteError,
 });
 
