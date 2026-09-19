@@ -54,19 +54,19 @@ const PowerButtons: React.FC = () => {
             {hasPermission(permissions, 'control.start') && (
                 <Button size='sm' disabled={!socket || powerState !== 'offline'} onClick={() => sendAction('start')}>
                     <PlayIcon />
-                    Start
+                    <span className='sr-only sm:not-sr-only'>Start</span>
                 </Button>
             )}
             {hasPermission(permissions, 'control.restart') && (
                 <Button size='sm' variant='outline' disabled={!socket || isOffline} onClick={() => sendAction('restart')}>
                     <RotateCwIcon />
-                    Restart
+                    <span className='sr-only sm:not-sr-only'>Restart</span>
                 </Button>
             )}
             {hasPermission(permissions, 'control.stop') && (
                 <Button size='sm' variant='destructive' disabled={!socket || isOffline} onClick={handleStop}>
                     <SquareIcon />
-                    {isKillable ? 'Kill' : 'Stop'}
+                    <span className='sr-only sm:not-sr-only'>{isKillable ? 'Kill' : 'Stop'}</span>
                 </Button>
             )}
             <AlertDialog open={isKillConfirmOpen} onOpenChange={setIsKillConfirmOpen}>

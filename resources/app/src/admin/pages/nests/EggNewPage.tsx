@@ -51,7 +51,7 @@ const EggNewPage: React.FC = () => {
 
     return (
         <>
-            <PageHeader title='New egg'>
+            <PageHeader title='Create egg'>
                 <Button size='sm' variant='outline' render={<Link to='/admin/nests' />}>
                     Back
                 </Button>

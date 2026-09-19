@@ -64,7 +64,7 @@ const CreateBackupDialog: React.FC = () => {
         <>
             <Button size='sm' onClick={() => handleOpenChange(true)}>
                 <PlusIcon />
-                Create backup
+                New backup
             </Button>
             <Dialog open={isOpen} onOpenChange={handleOpenChange}>
                 <DialogContent>

@@ -115,7 +115,7 @@ const NodesPage: React.FC = () => {
             <PageHeader title='Nodes'>
                 <Button size='sm' nativeButton={false} render={<Link to='/admin/nodes/new' />}>
                     <PlusIcon />
-                    Create new
+                    New node
                 </Button>
             </PageHeader>
             <div className='mx-auto flex w-full max-w-7xl flex-col gap-4 p-4'>

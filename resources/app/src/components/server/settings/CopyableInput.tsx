@@ -14,7 +14,7 @@ const CopyableInput: React.FC<{
 
     return (
         <InputGroup>
-            <InputGroupInput id={id} value={value} readOnly className='font-mono' />
+            <InputGroupInput id={id} value={value} readOnly className='min-w-0 font-mono' />
             <InputGroupAddon align='inline-end'>
                 <InputGroupButton size='icon-xs' aria-label='Copy' onClick={handleCopy}>
                     <CopyIcon />

@@ -26,8 +26,8 @@ const ServerConsolePage: React.FC = () => {
                         </AlertDescription>
                     </Alert>
                 )}
-                <div className='flex min-h-0 flex-1 flex-col gap-4 lg:flex-row'>
-                    <div className='flex min-h-96 min-w-0 flex-1 flex-col lg:min-h-0'>
+                <div className='flex flex-col gap-4 lg:min-h-0 lg:flex-1 lg:flex-row'>
+                    <div className='flex h-[55svh] min-h-96 min-w-0 flex-col lg:h-auto lg:min-h-0 lg:flex-1'>
                         <ServerConsole />
                     </div>
                     <div className='w-full shrink-0 lg:w-64'>

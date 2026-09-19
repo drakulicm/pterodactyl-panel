@@ -74,7 +74,7 @@ const DatabaseHostCreateDialog: React.FC = () => {
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger render={<Button size='sm' />}>
                 <PlusIcon />
-                Create new
+                New database host
             </DialogTrigger>
             <DialogContent className='sm:max-w-2xl'>
                 <DialogHeader>

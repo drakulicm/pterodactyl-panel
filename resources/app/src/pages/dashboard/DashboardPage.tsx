@@ -47,7 +47,8 @@ const DashboardPage: React.FC = () => {
                 {sessionUser?.rootAdmin && (
                     <div className='flex items-center gap-2'>
                         <Label htmlFor='show-others' className='text-xs text-muted-foreground'>
-                            Show others&apos; servers
+                            <span className='hidden sm:inline'>Show others&apos; servers</span>
+                            <span className='sm:hidden'>Others</span>
                         </Label>
                         <Switch id='show-others' checked={showOthers} onCheckedChange={handleShowOthersChange} />
                     </div>

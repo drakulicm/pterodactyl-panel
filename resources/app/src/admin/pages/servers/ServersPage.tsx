@@ -167,7 +167,7 @@ const ServersPage: React.FC = () => {
                     render={<Link to='/admin/servers/new' />}
                 >
                     <PlusIcon />
-                    Create new
+                    New server
                 </Button>
             </PageHeader>
             <div className='mx-auto flex w-full max-w-7xl flex-col gap-4 p-4'>

@@ -63,7 +63,7 @@ const LocationCreateDialog: React.FC = () => {
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger render={<Button size='sm' />}>
                 <PlusIcon />
-                Create new
+                New location
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>

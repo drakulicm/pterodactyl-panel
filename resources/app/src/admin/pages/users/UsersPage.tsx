@@ -67,7 +67,7 @@ const UsersPage: React.FC = () => {
             <PageHeader title='Users'>
                 <Button size='sm' render={<Link to='/admin/users/new' />}>
                     <PlusIcon />
-                    Create new
+                    New user
                 </Button>
             </PageHeader>
             <div className='mx-auto flex w-full max-w-6xl flex-col gap-4 p-4'>

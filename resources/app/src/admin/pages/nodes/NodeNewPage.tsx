@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 const NodeNewPage: React.FC = () => {
     return (
         <>
-            <PageHeader title='New node'>
+            <PageHeader title='Create node'>
                 <Button variant='outline' size='sm' nativeButton={false} render={<Link to='/admin/nodes' />}>
                     <ArrowLeftIcon />
                     Back to nodes

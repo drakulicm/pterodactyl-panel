@@ -70,7 +70,7 @@ const MountsPage: React.FC = () => {
                     trigger={
                         <Button size='sm'>
                             <PlusIcon />
-                            Create new
+                            New mount
                         </Button>
                     }
                     isOpen={isCreateOpen}

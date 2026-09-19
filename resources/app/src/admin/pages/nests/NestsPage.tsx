@@ -88,7 +88,7 @@ const NestsPage: React.FC = () => {
                     trigger={
                         <Button size='sm'>
                             <PlusIcon />
-                            Create new
+                            New nest
                         </Button>
                     }
                     isOpen={isCreateOpen}

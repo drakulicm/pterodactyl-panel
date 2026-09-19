@@ -48,7 +48,7 @@ const ServerNetworkPage: React.FC = () => {
                 {canCreate && allocationLimit > data.length && (
                     <Button size='sm' disabled={create.isPending} onClick={() => create.mutate()}>
                         {create.isPending ? <Spinner /> : <PlusIcon />}
-                        Create allocation
+                        New allocation
                     </Button>
                 )}
             </PageHeader>
