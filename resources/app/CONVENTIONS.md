@@ -41,7 +41,11 @@ Routes are registered only in `src/router.tsx`; server sidebar links only in `sr
 
 ## Verify
 
-`pnpm typecheck` must pass. `pnpm build` writes to `public/build`, which the dev panel at http://localhost:8080 serves (login `admin` / `password`, test server `ffb08c0c`).
+`pnpm typecheck` and `pnpm test` must pass. `pnpm build` writes to `public/build`, which the dev panel at http://localhost:8080 serves (login `admin` / `password`, test server `ffb08c0c`).
+
+End-to-end specs live in `e2e/` and run with `pnpm test:e2e` against that same panel, after a build. They cover what the panel can do without Wings: auth, the account pages, and the admin area. See `e2e/README.md` before adding one — logging in is rate limited, so specs reuse a saved session.
+
+The UI is English only and has no translation layer: write strings directly in the component. The one exception is the activity log, whose event strings are templates keyed by event name in `src/lib/activity.ts`; adding an activity event to the backend means adding its string there too (`resources/lang/en/activity.php` is the legacy UI's copy of the same list).
 
 ## Admin area (`src/admin/**`)
 

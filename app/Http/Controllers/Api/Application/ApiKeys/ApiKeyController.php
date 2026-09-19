@@ -11,8 +11,8 @@ use Pterodactyl\Services\Api\KeyCreationService;
 use Pterodactyl\Transformers\Api\Application\ApiKeyTransformer;
 use Pterodactyl\Http\Requests\Api\Application\ApiKeys\GetApiKeysRequest;
 use Pterodactyl\Http\Requests\Api\Application\ApiKeys\StoreApiKeyRequest;
-use Pterodactyl\Http\Requests\Api\Application\ApiKeys\DeleteApiKeyRequest;
 use Pterodactyl\Http\Controllers\Api\Application\ApplicationApiController;
+use Pterodactyl\Http\Requests\Api\Application\ApiKeys\DeleteApiKeyRequest;
 
 class ApiKeyController extends ApplicationApiController
 {

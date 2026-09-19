@@ -14,8 +14,8 @@ use Pterodactyl\Transformers\Api\Application\NestTransformer;
 use Pterodactyl\Http\Requests\Api\Application\Nests\StoreNestRequest;
 use Pterodactyl\Http\Requests\Api\Application\Nests\DeleteNestRequest;
 use Pterodactyl\Http\Requests\Api\Application\Nests\UpdateNestRequest;
-use Pterodactyl\Http\Requests\Api\Application\Nests\Eggs\ImportEggRequest;
 use Pterodactyl\Http\Controllers\Api\Application\ApplicationApiController;
+use Pterodactyl\Http\Requests\Api\Application\Nests\Eggs\ImportEggRequest;
 
 class NestManagementController extends ApplicationApiController
 {

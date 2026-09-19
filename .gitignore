@@ -6,6 +6,7 @@
 .vagrant/*
 .vscode/*
 storage/framework/*
+storage/phpunit.xml
 /.idea
 /nbproject
 /.direnv

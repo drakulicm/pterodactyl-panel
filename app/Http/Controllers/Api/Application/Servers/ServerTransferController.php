@@ -4,8 +4,8 @@ namespace Pterodactyl\Http\Controllers\Api\Application\Servers;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
-use Pterodactyl\Models\Server;
 use Pterodactyl\Enum\JwtScope;
+use Pterodactyl\Models\Server;
 use Pterodactyl\Models\Allocation;
 use Pterodactyl\Models\ServerTransfer;
 use Illuminate\Database\ConnectionInterface;
@@ -13,8 +13,8 @@ use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Services\Nodes\NodeJWTService;
 use Pterodactyl\Repositories\Eloquent\NodeRepository;
 use Pterodactyl\Repositories\Wings\DaemonTransferRepository;
-use Pterodactyl\Http\Requests\Api\Application\Servers\TransferServerRequest;
 use Pterodactyl\Http\Controllers\Api\Application\ApplicationApiController;
+use Pterodactyl\Http\Requests\Api\Application\Servers\TransferServerRequest;
 
 class ServerTransferController extends ApplicationApiController
 {

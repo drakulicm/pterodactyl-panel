@@ -1,41 +1,17 @@
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import { FolderOpenIcon, TerminalIcon } from 'lucide-react';
-import { Trans, useTranslation } from 'react-i18next';
-
-import '@/lib/i18n';
 
 import type { ActivityLog } from '@/api/activity';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-
-const wrapProperties = (value: unknown): unknown => {
-    if (value === null || typeof value === 'string' || typeof value === 'number') {
-        return `<strong>${String(value)}</strong>`;
-    }
-
-    if (Array.isArray(value)) {
-        return value.map(wrapProperties);
-    }
-
-    if (typeof value === 'object') {
-        return Object.fromEntries(
-            Object.entries(value).map(([key, item]) => [
-                key,
-                key === 'count' || key.endsWith('_count') ? item : wrapProperties(item),
-            ]),
-        );
-    }
-
-    return value;
-};
+import { describeActivity } from '@/lib/activity';
 
 const ActivityLogEntry: React.FC<{
     activity: ActivityLog;
     onEventClick: (event: string) => void;
 }> = ({ activity, onEventClick }) => {
-    const { t } = useTranslation('activity');
-    const properties = wrapProperties(activity.properties) as Record<string, unknown>;
+    const segments = describeActivity(activity.event, activity.properties);
 
     return (
         <div className='flex gap-3 border-b px-4 py-3 last:border-b-0'>
@@ -75,8 +51,16 @@ const ActivityLogEntry: React.FC<{
                         </Tooltip>
                     )}
                 </div>
-                <p className='text-sm break-words text-muted-foreground [&_strong]:font-medium [&_strong]:text-foreground'>
-                    <Trans t={t} i18nKey={activity.event.replace(':', '.')} values={properties} />
+                <p className='text-sm break-words text-muted-foreground'>
+                    {segments.map((segment, index) =>
+                        segment.isHighlighted ? (
+                            <strong key={index} className='font-medium text-foreground'>
+                                {segment.text}
+                            </strong>
+                        ) : (
+                            <span key={index}>{segment.text}</span>
+                        ),
+                    )}
                 </p>
                 <div className='flex items-center gap-2 text-xs text-muted-foreground'>
                     {activity.ip && <span>{activity.ip}</span>}

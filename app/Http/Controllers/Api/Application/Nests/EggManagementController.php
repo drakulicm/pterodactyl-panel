@@ -14,11 +14,11 @@ use Pterodactyl\Services\Eggs\Scripts\InstallScriptService;
 use Pterodactyl\Transformers\Api\Application\EggTransformer;
 use Pterodactyl\Services\Eggs\Sharing\EggUpdateImporterService;
 use Pterodactyl\Http\Requests\Api\Application\Nests\Eggs\StoreEggRequest;
+use Pterodactyl\Http\Controllers\Api\Application\ApplicationApiController;
 use Pterodactyl\Http\Requests\Api\Application\Nests\Eggs\DeleteEggRequest;
 use Pterodactyl\Http\Requests\Api\Application\Nests\Eggs\ExportEggRequest;
 use Pterodactyl\Http\Requests\Api\Application\Nests\Eggs\ImportEggRequest;
 use Pterodactyl\Http\Requests\Api\Application\Nests\Eggs\UpdateEggRequest;
-use Pterodactyl\Http\Controllers\Api\Application\ApplicationApiController;
 use Pterodactyl\Http\Requests\Api\Application\Nests\Eggs\UpdateEggScriptRequest;
 
 class EggManagementController extends ApplicationApiController

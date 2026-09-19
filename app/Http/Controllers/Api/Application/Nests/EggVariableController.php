@@ -2,8 +2,8 @@
 
 namespace Pterodactyl\Http\Controllers\Api\Application\Nests;
 
-use Pterodactyl\Models\Egg;
 use Illuminate\Support\Str;
+use Pterodactyl\Models\Egg;
 use Pterodactyl\Models\Nest;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
@@ -59,7 +59,7 @@ class EggVariableController extends ApplicationApiController
     /**
      * Update an existing egg variable.
      *
-     * @throws \Pterodactyl\Exceptions\DisplayException
+     * @throws DisplayException
      * @throws \Pterodactyl\Exceptions\Model\DataValidationException
      * @throws \Pterodactyl\Exceptions\Repository\RecordNotFoundException
      * @throws \Pterodactyl\Exceptions\Service\Egg\Variable\ReservedVariableNameException

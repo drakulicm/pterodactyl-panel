@@ -14,10 +14,13 @@ Wings are unchanged apart from additive API endpoints.
 | `config/ui.php` | The `APP_NEW_UI` / `APP_NEW_ADMIN` feature flags. |
 | `resources/app/CONVENTIONS.md` | How to write code in the new frontend. Read before contributing. |
 | `resources/app/ADMIN_API.md` | Contract for the Application API endpoints added by this fork. |
+| `resources/app/e2e` | Playwright specs that drive the built frontend against a running panel. |
+| `CUTOVER.md` | The staged plan for turning the flags on and deleting the upstream frontend. |
 
 Everything is additive so the fork stays rebasable onto upstream. Upstream files touched so far:
 `routes/admin.php`, `routes/api-application.php`, `app/Http/Controllers/{Base/IndexController,Auth/LoginController}.php`,
-`app/Transformers/Api/Application/{BaseTransformer,EggTransformer}.php`, `Dockerfile`.
+`app/Transformers/Api/Application/{BaseTransformer,EggTransformer}.php`, `Dockerfile`, and
+`tests/Integration/Api/Client/AccountControllerTest.php` (whitespace only, to satisfy `php-cs-fixer`).
 
 ## Feature flags
 
@@ -63,8 +66,25 @@ so `docker compose down` will not remove them.
 ```bash
 cd resources/app
 pnpm typecheck
-pnpm test
+pnpm test                   # vitest unit tests
+pnpm build && pnpm test:e2e # Playwright, against the stack above — see resources/app/e2e/README.md
 ```
+
+The PHP suite needs a database whose name contains `test`; `bootstrap/tests.php` refuses to run
+against anything else and rebuilds the schema before every run. Against the dev stack:
+
+```bash
+docker compose -f compose.dev.yml exec -T database mariadb -uroot -pdev_root -e 'CREATE DATABASE IF NOT EXISTS testing'
+docker run --rm --network pterodactyl-dev_default -v "$PWD:/app" -w /app \
+    -e APP_ENV=testing -e APP_KEY=SomeRandomString3232RandomString -e HASHIDS_SALT=test123 \
+    -e DB_HOST=database -e DB_DATABASE=testing -e DB_USERNAME=root -e DB_PASSWORD=dev_root \
+    -e CACHE_DRIVER=array -e SESSION_DRIVER=array -e QUEUE_DRIVER=sync \
+    --entrypoint php ghcr.io/pterodactyl/panel:v1.15.1 vendor/bin/phpunit tests/Integration
+```
+
+Swap `vendor/bin/phpunit` for `vendor/bin/php-cs-fixer fix` to apply the code style the CI checks.
+`tests/Unit/Console/Commands/Environment/Addons/RunHooksCommandTest` fails when run this way because
+the executable bit does not survive the bind mount from macOS; it passes in CI.
 
 ## Building and deploying
 
@@ -72,10 +92,15 @@ The `Dockerfile` builds both frontends: stage 0 runs the legacy yarn/webpack bui
 `pnpm build` into `public/build`, and both are copied into the final image. That means one image can serve either UI
 depending on the flags.
 
+`.github/workflows/ci-fork.yaml` runs the checks above on pushes and pull requests to `main` /
+`feat/new-ui`. Upstream's `ci.yaml` only fires on pull requests to `1.0-develop`, so it never sees
+this fork's branches.
+
 `.github/workflows/docker-fork.yaml` builds and pushes `ghcr.io/<owner>/<repo>` on pushes to `main` / `feat/new-ui` and
 on `fork-v*` tags.
 
-To deploy, point the panel service at the fork's image and set the flags. The container needs a persistent volume at
+See `CUTOVER.md` for the staged plan for enabling the flags in production and eventually deleting
+`resources/scripts`. To deploy, point the panel service at the fork's image and set the flags. The container needs a persistent volume at
 `/app/var`, which is where the entrypoint stores the generated `APP_KEY`; without it the panel returns 500s. No database
 migrations are introduced by this fork, so rolling back is just changing the image tag.
 
