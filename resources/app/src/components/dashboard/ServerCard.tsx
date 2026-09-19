@@ -2,20 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { CpuIcon, HardDriveIcon, MemoryStickIcon, NetworkIcon } from 'lucide-react';
 
-import type { Server, ServerPowerState } from '@/api/server/types';
+import type { Server } from '@/api/server/types';
 import { serverResourcesQueryOptions } from '@/api/servers';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { bytesToString, formatIp, mbToBytes } from '@/lib/format';
+import { POWER_STATE_CLASSES } from '@/lib/powerState';
 import { cn } from '@/lib/utils';
-
-const POWER_STATE_CLASSES: Record<ServerPowerState, string> = {
-    running: 'bg-success',
-    starting: 'bg-warning',
-    stopping: 'bg-warning',
-    offline: 'bg-destructive',
-};
 
 const getStatusLabel = (server: Server, isSuspended: boolean): string | null => {
     if (isSuspended || server.status === 'suspended') {
