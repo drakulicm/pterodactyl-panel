@@ -66,23 +66,32 @@ const FileRow: React.FC<{
     const canArchive = hasPermission(permissions, 'file.archive');
     const canDelete = hasPermission(permissions, 'file.delete');
     const canOpen = !file.isFile || (isEditable(file) && hasPermission(permissions, 'file.read-content'));
+    const size = bytesToString(file.size);
+    const modified =
+        Math.abs(differenceInHours(file.modifiedAt, new Date())) > 48
+            ? format(file.modifiedAt, 'MMM do, yyyy h:mma')
+            : formatDistanceToNow(file.modifiedAt, { addSuffix: true });
 
     const content = (
         <>
             <Icon className='size-4 shrink-0 text-muted-foreground' />
-            <span className='min-w-0 flex-1 truncate text-sm'>{file.name}</span>
+            <div className='flex min-w-0 flex-1 flex-col'>
+                <span className='truncate text-sm'>{file.name}</span>
+                <span className='flex items-center gap-2 text-xs text-muted-foreground tabular-nums md:hidden'>
+                    {file.isFile && <span className='sm:hidden'>{size}</span>}
+                    <span>{modified}</span>
+                </span>
+            </div>
             {file.isFile && (
                 <span className='hidden w-24 shrink-0 text-right text-xs text-muted-foreground tabular-nums sm:block'>
-                    {bytesToString(file.size)}
+                    {size}
                 </span>
             )}
             <span
                 className='hidden w-36 shrink-0 text-right text-xs text-muted-foreground md:block'
                 title={file.modifiedAt.toString()}
             >
-                {Math.abs(differenceInHours(file.modifiedAt, new Date())) > 48
-                    ? format(file.modifiedAt, 'MMM do, yyyy h:mma')
-                    : formatDistanceToNow(file.modifiedAt, { addSuffix: true })}
+                {modified}
             </span>
         </>
     );
