@@ -1,6 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation } from '@tanstack/react-router';
-import { ArchiveIcon, FilePlusIcon, FolderOpenIcon, FolderPlusIcon, LinkIcon, Trash2Icon, UploadIcon } from 'lucide-react';
+import {
+    ArchiveIcon,
+    ChevronDownIcon,
+    ChevronUpIcon,
+    FilePlusIcon,
+    FolderOpenIcon,
+    FolderPlusIcon,
+    LinkIcon,
+    SearchIcon,
+    Trash2Icon,
+    UploadIcon,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { directoryQueryOptions, type FileObject } from '@/api/server/files';
@@ -18,6 +29,7 @@ import { UploadStatus } from '@/components/server/files/UploadStatus';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFileActions } from '@/hooks/useFileActions';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -27,14 +39,66 @@ import { hashToPath, pathToHash } from '@/lib/paths';
 import { hasPermission } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 
-const sortFiles = (files: FileObject[]): FileObject[] =>
-    [...files].sort((a, b) => Number(a.isFile) - Number(b.isFile) || a.name.localeCompare(b.name));
+type SortColumn = 'name' | 'size' | 'modified';
+
+interface SortState {
+    column: SortColumn;
+    direction: 'asc' | 'desc';
+}
+
+const compareFiles = (a: FileObject, b: FileObject, column: SortColumn): number => {
+    if (column === 'size') {
+        return a.size - b.size;
+    }
+
+    if (column === 'modified') {
+        return a.modifiedAt.getTime() - b.modifiedAt.getTime();
+    }
+
+    return a.name.localeCompare(b.name);
+};
+
+const sortFiles = (files: FileObject[], sort: SortState): FileObject[] =>
+    [...files].sort(
+        (a, b) =>
+            Number(a.isFile) - Number(b.isFile) ||
+            compareFiles(a, b, sort.column) * (sort.direction === 'asc' ? 1 : -1),
+    );
+
+const SortHeader: React.FC<{
+    column: SortColumn;
+    label: string;
+    sort: SortState;
+    className?: string;
+    onSortChange: (column: SortColumn) => void;
+}> = ({ column, label, sort, className, onSortChange }) => {
+    return (
+        <Button
+            variant='ghost'
+            className={cn(
+                'h-6 gap-1 rounded-none px-0 text-xs font-normal text-muted-foreground hover:bg-transparent hover:text-foreground',
+                className,
+            )}
+            onClick={() => onSortChange(column)}
+        >
+            {label}
+            {sort.column === column &&
+                (sort.direction === 'asc' ? (
+                    <ChevronUpIcon className='size-3' />
+                ) : (
+                    <ChevronDownIcon className='size-3' />
+                ))}
+        </Button>
+    );
+};
 
 const ServerFilesPage: React.FC = () => {
     const { server, permissions } = useServer();
     const hash = useLocation({ select: (location) => location.hash });
     const directory = hashToPath(hash);
     const [selected, setSelected] = useState<string[]>([]);
+    const [filter, setFilter] = useState('');
+    const [sort, setSort] = useState<SortState>({ column: 'name', direction: 'asc' });
     const [dialog, setDialog] = useState<FileDialogState>(null);
     const [isDragging, setIsDragging] = useState(false);
     const fileInput = useRef<HTMLInputElement>(null);
@@ -47,13 +111,27 @@ const ServerFilesPage: React.FC = () => {
     const canUpdate = hasPermission(permissions, 'file.update');
     const canArchive = hasPermission(permissions, 'file.archive');
     const canDelete = hasPermission(permissions, 'file.delete');
-    const files = data ? sortFiles(data) : [];
+    const query = filter.trim().toLowerCase();
+    const matches = data ? data.filter((file) => file.name.toLowerCase().includes(query)) : [];
+    const files = sortFiles(matches, sort);
+
+    useEffect(() => {
+        setFilter('');
+    }, [directory]);
 
     useEffect(() => {
         setSelected([]);
-    }, [directory]);
+    }, [directory, query]);
 
     const handleClose = () => setDialog(null);
+
+    const handleSortChange = (column: SortColumn) => {
+        setSort((previous) =>
+            previous.column === column
+                ? { column, direction: previous.direction === 'asc' ? 'desc' : 'asc' }
+                : { column, direction: 'asc' },
+        );
+    };
 
     const handleSelectedChange = (name: string, isSelected: boolean) => {
         setSelected((previous) => (isSelected ? [...previous, name] : previous.filter((item) => item !== name)));
@@ -117,10 +195,22 @@ const ServerFilesPage: React.FC = () => {
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={handleDrop}
             >
-                <div className='flex min-h-8 flex-wrap items-center justify-between gap-2'>
+                <div className='flex min-h-8 flex-wrap items-center gap-2'>
                     <FileBreadcrumbs directory={directory} />
+                    {!!data?.length && (
+                        <InputGroup className='ml-auto w-full sm:w-56'>
+                            <InputGroupInput
+                                placeholder='Filter this directory...'
+                                value={filter}
+                                onChange={(event) => setFilter(event.target.value)}
+                            />
+                            <InputGroupAddon>
+                                <SearchIcon />
+                            </InputGroupAddon>
+                        </InputGroup>
+                    )}
                     {selected.length > 0 && (
-                        <div className='flex items-center gap-2'>
+                        <div className='flex flex-wrap items-center gap-2'>
                             <span className='text-xs text-muted-foreground'>{selected.length} selected</span>
                             {canUpdate && (
                                 <Button
@@ -164,13 +254,31 @@ const ServerFilesPage: React.FC = () => {
                         <div className='flex items-center gap-3 border-b bg-muted/40 px-3 py-2 text-xs text-muted-foreground'>
                             <Checkbox
                                 aria-label='Select all files'
-                                checked={selected.length === files.length}
+                                checked={files.length > 0 && selected.length === files.length}
                                 indeterminate={selected.length > 0 && selected.length < files.length}
                                 onCheckedChange={(checked) => setSelected(checked === true ? files.map((file) => file.name) : [])}
                             />
-                            <span className='flex-1'>Name</span>
-                            <span className='hidden w-24 text-right sm:block'>Size</span>
-                            <span className='hidden w-36 text-right md:block'>Modified</span>
+                            <SortHeader
+                                column='name'
+                                label='Name'
+                                sort={sort}
+                                className='flex-1 justify-start'
+                                onSortChange={handleSortChange}
+                            />
+                            <SortHeader
+                                column='size'
+                                label='Size'
+                                sort={sort}
+                                className='hidden w-24 justify-end sm:inline-flex'
+                                onSortChange={handleSortChange}
+                            />
+                            <SortHeader
+                                column='modified'
+                                label='Modified'
+                                sort={sort}
+                                className='hidden w-36 justify-end md:inline-flex'
+                                onSortChange={handleSortChange}
+                            />
                             <span className='w-7' />
                         </div>
                         {files.map((file) => (
@@ -192,8 +300,12 @@ const ServerFilesPage: React.FC = () => {
                                 <EmptyMedia variant='icon'>
                                     <FolderOpenIcon />
                                 </EmptyMedia>
-                                <EmptyTitle>This directory is empty</EmptyTitle>
-                                <EmptyDescription>Drop files here or use the buttons above to add some.</EmptyDescription>
+                                <EmptyTitle>{query ? 'Nothing matches that filter' : 'This directory is empty'}</EmptyTitle>
+                                <EmptyDescription>
+                                    {query
+                                        ? 'No file or directory here matches what you typed.'
+                                        : 'Drop files here or use the buttons above to add some.'}
+                                </EmptyDescription>
                             </EmptyHeader>
                         </Empty>
                     )
