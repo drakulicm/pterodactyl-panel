@@ -28,7 +28,7 @@ const BackupRow: React.FC<{
                 {!isCompleted ? (
                     <Spinner />
                 ) : backup.isLocked ? (
-                    <LockIcon className='size-4 text-amber-500' />
+                    <LockIcon className='size-4 text-warning' />
                 ) : (
                     <ArchiveIcon className='size-4 text-muted-foreground' />
                 )}

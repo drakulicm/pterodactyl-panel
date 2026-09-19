@@ -40,7 +40,7 @@ const StatBlock: React.FC<{
             <div
                 className={cn(
                     'flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors duration-200',
-                    isAlarm && 'bg-red-500/15 text-red-400',
+                    isAlarm && 'bg-destructive/15 text-destructive',
                 )}
             >
                 <Icon className='size-4' />

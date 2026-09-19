@@ -34,7 +34,7 @@ const NodeCodeBlock: React.FC<{
                 className='absolute top-2 right-2'
                 onClick={handleCopy}
             >
-                {isCopied ? <CheckIcon className='text-emerald-500' /> : <CopyIcon />}
+                {isCopied ? <CheckIcon className='text-success' /> : <CopyIcon />}
             </Button>
         </div>
     );

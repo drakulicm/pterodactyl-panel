@@ -90,7 +90,7 @@ const ServerLayout: React.FC = () => {
     return (
         <>
             {socketError && (
-                <div className='flex items-center justify-center gap-2 bg-destructive/15 px-4 py-2 text-sm text-red-300'>
+                <div className='flex items-center justify-center gap-2 bg-destructive/15 px-4 py-2 text-sm text-destructive'>
                     {socketError === 'connecting' && <Spinner />}
                     {SOCKET_ERROR_MESSAGES[socketError]}
                 </div>

@@ -19,7 +19,7 @@ const NodeHealthIndicator: React.FC<{
         <Tooltip>
             <TooltipTrigger render={<span className='inline-flex' />}>
                 {information.data ? (
-                    <HeartPulseIcon className='size-4 text-emerald-500' />
+                    <HeartPulseIcon className='size-4 text-success' />
                 ) : (
                     <HeartCrackIcon className='size-4 text-destructive' />
                 )}

@@ -11,10 +11,10 @@ import { bytesToString, formatIp, mbToBytes } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 const POWER_STATE_CLASSES: Record<ServerPowerState, string> = {
-    running: 'bg-emerald-500',
-    starting: 'bg-amber-500',
-    stopping: 'bg-amber-500',
-    offline: 'bg-red-500',
+    running: 'bg-success',
+    starting: 'bg-warning',
+    stopping: 'bg-warning',
+    offline: 'bg-destructive',
 };
 
 const getStatusLabel = (server: Server, isSuspended: boolean): string | null => {
@@ -53,7 +53,7 @@ const Stat: React.FC<{
 }> = ({ icon: Icon, value, limit, isAlarm }) => {
     return (
         <div className='flex min-w-0 flex-col gap-0.5'>
-            <div className={cn('flex items-center gap-1.5 text-sm font-medium tabular-nums', isAlarm && 'text-red-400')}>
+            <div className={cn('flex items-center gap-1.5 text-sm font-medium tabular-nums', isAlarm && 'text-destructive')}>
                 <Icon className='size-3.5 shrink-0 text-muted-foreground' />
                 <span className='truncate'>{value}</span>
             </div>

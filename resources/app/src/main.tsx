@@ -7,7 +7,10 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { queryClient } from '@/lib/queryClient';
+import { watchSystemTheme } from '@/lib/theme';
 import { router } from '@/router';
+
+watchSystemTheme();
 
 const container = document.getElementById('app');
 

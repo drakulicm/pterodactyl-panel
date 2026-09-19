@@ -20,7 +20,7 @@ const columns: AdminColumn<AdminNode>[] = [
         header: 'Name',
         cell: (node) => (
             <div className='flex items-center gap-2'>
-                {node.maintenance_mode && <WrenchIcon className='size-4 text-amber-500' />}
+                {node.maintenance_mode && <WrenchIcon className='size-4 text-warning' />}
                 <Link
                     to='/admin/nodes/view/$nodeId'
                     params={{ nodeId: String(node.id) }}

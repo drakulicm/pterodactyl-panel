@@ -20,7 +20,7 @@ const columns: AdminColumn<AdminUser>[] = [
         cell: (user) => (
             <span className='flex items-center gap-1.5'>
                 {user.email}
-                {user.root_admin && <ShieldCheckIcon className='size-3.5 text-amber-500' />}
+                {user.root_admin && <ShieldCheckIcon className='size-3.5 text-warning' />}
             </span>
         ),
     },
@@ -37,7 +37,7 @@ const columns: AdminColumn<AdminUser>[] = [
         className: 'text-center',
         cell: (user) =>
             user['2fa'] ? (
-                <LockIcon className='mx-auto size-3.5 text-emerald-500' />
+                <LockIcon className='mx-auto size-3.5 text-success' />
             ) : (
                 <UnlockIcon className='mx-auto size-3.5 text-destructive' />
             ),

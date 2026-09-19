@@ -36,11 +36,26 @@
             window.UiConfiguration = {!! json_encode(['newAdmin' => (bool) config('ui.new_admin')]) !!};
         </script>
 
+        {{-- Applies the stored theme before first paint. Storage key is mirrored in resources/app/src/lib/theme.ts. --}}
+        <script>
+            (function () {
+                try {
+                    var stored = localStorage.getItem('pterodactyl:theme');
+                    var resolved = stored === 'light' || stored === 'dark'
+                        ? stored
+                        : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+                    document.documentElement.classList.toggle('dark', resolved === 'dark');
+                    document.documentElement.style.colorScheme = resolved;
+                } catch (e) {}
+            })();
+        </script>
+
         @php(\Illuminate\Support\Facades\Vite::useHotFile(public_path('build/hot')))
         @viteReactRefresh
         @vite('src/main.tsx')
     </head>
-    <body class="dark">
+    <body>
         <div id="app"></div>
     </body>
 </html>

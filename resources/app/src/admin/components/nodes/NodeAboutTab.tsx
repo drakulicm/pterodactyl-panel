@@ -187,7 +187,7 @@ const NodeAboutTab: React.FC<{
                 <CardContent className='flex flex-col gap-4'>
                     {node.maintenance_mode && (
                         <Alert>
-                            <TriangleAlertIcon className='text-amber-500' />
+                            <TriangleAlertIcon className='text-warning' />
                             <AlertTitle>Under maintenance</AlertTitle>
                             <AlertDescription>
                                 Users cannot access servers that are running on this node.

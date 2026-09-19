@@ -66,7 +66,7 @@ const OverviewPage: React.FC = () => {
                 {version.isPending && <Skeleton className='h-16 rounded-lg' />}
                 {panel && panel.is_latest && (
                     <Alert>
-                        <CircleCheckIcon className='text-emerald-500' />
+                        <CircleCheckIcon className='text-success' />
                         <AlertTitle>System information</AlertTitle>
                         <AlertDescription>
                             You are running Pterodactyl Panel version{' '}
