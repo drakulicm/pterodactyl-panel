@@ -4,7 +4,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { SearchAddon } from '@xterm/addon-search';
 import { Unicode11Addon } from '@xterm/addon-unicode11';
 import { WebLinksAddon } from '@xterm/addon-web-links';
-import { Terminal } from '@xterm/xterm';
+import { type ITheme, Terminal } from '@xterm/xterm';
 import { ChevronRightIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -14,8 +14,10 @@ import { usePersistedState } from '@/hooks/usePersistedState';
 import { useServer } from '@/hooks/useServer';
 import { useSocketEvent } from '@/hooks/useSocketEvent';
 import { hasPermission } from '@/lib/permissions';
+import type { ResolvedTheme } from '@/lib/theme';
 import { SocketEvent, SocketRequest } from '@/lib/socketEvents';
 import { useServerStore } from '@/stores/serverStore';
+import { useThemeStore } from '@/stores/themeStore';
 
 const ESCAPE = String.fromCharCode(27);
 const RESET = `${ESCAPE}[0m`;
@@ -23,26 +25,51 @@ const TERMINAL_PRELUDE = `${ESCAPE}[1m${ESCAPE}[33mcontainer@pterodactyl~ ${RESE
 const ERROR_STYLE = `${ESCAPE}[1m${ESCAPE}[41m`;
 const HISTORY_LIMIT = 32;
 
-const TERMINAL_THEME = {
-    background: '#0a0a0a',
-    cursor: 'transparent',
-    black: '#0a0a0a',
-    red: '#f87171',
-    green: '#4ade80',
-    yellow: '#facc15',
-    blue: '#60a5fa',
-    magenta: '#c084fc',
-    cyan: '#22d3ee',
-    white: '#d4d4d4',
-    brightBlack: '#737373',
-    brightRed: '#fca5a5',
-    brightGreen: '#86efac',
-    brightYellow: '#fde047',
-    brightBlue: '#93c5fd',
-    brightMagenta: '#d8b4fe',
-    brightCyan: '#67e8f9',
-    brightWhite: '#fafafa',
-    selectionBackground: '#fafafa33',
+const TERMINAL_THEMES: Record<ResolvedTheme, ITheme> = {
+    dark: {
+        background: '#00000000',
+        foreground: '#e5e5e5',
+        cursor: 'transparent',
+        black: '#0a0a0a',
+        red: '#f87171',
+        green: '#4ade80',
+        yellow: '#facc15',
+        blue: '#60a5fa',
+        magenta: '#c084fc',
+        cyan: '#22d3ee',
+        white: '#d4d4d4',
+        brightBlack: '#737373',
+        brightRed: '#fca5a5',
+        brightGreen: '#86efac',
+        brightYellow: '#fde047',
+        brightBlue: '#93c5fd',
+        brightMagenta: '#d8b4fe',
+        brightCyan: '#67e8f9',
+        brightWhite: '#fafafa',
+        selectionBackground: '#fafafa33',
+    },
+    light: {
+        background: '#00000000',
+        foreground: '#27272a',
+        cursor: 'transparent',
+        black: '#27272a',
+        red: '#b91c1c',
+        green: '#15803d',
+        yellow: '#a16207',
+        blue: '#1d4ed8',
+        magenta: '#7e22ce',
+        cyan: '#0e7490',
+        white: '#52525b',
+        brightBlack: '#71717a',
+        brightRed: '#dc2626',
+        brightGreen: '#16a34a',
+        brightYellow: '#ca8a04',
+        brightBlue: '#2563eb',
+        brightMagenta: '#9333ea',
+        brightCyan: '#0891b2',
+        brightWhite: '#18181b',
+        selectionBackground: '#18181b26',
+    },
 };
 
 const ServerConsole: React.FC = () => {
@@ -51,6 +78,7 @@ const ServerConsole: React.FC = () => {
     const isConnected = useServerStore((state) => state.isConnected);
     const container = useRef<HTMLDivElement>(null);
     const terminal = useRef<Terminal | null>(null);
+    const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
     const [history, setHistory] = usePersistedState<string[]>(`${server.id}:command_history`, []);
     const [historyIndex, setHistoryIndex] = useState(-1);
     const canSendCommands = hasPermission(permissions, 'control.console');
@@ -75,7 +103,7 @@ const ServerConsole: React.FC = () => {
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
             lineHeight: 1.2,
             scrollback: 5000,
-            theme: TERMINAL_THEME,
+            theme: TERMINAL_THEMES[useThemeStore.getState().resolvedTheme],
         });
         const fitAddon = new FitAddon();
 
@@ -107,6 +135,12 @@ const ServerConsole: React.FC = () => {
             terminal.current = null;
         };
     }, []);
+
+    useEffect(() => {
+        if (terminal.current) {
+            terminal.current.options.theme = TERMINAL_THEMES[resolvedTheme];
+        }
+    }, [resolvedTheme]);
 
     useEffect(() => {
         if (!socket || !isConnected) {
@@ -163,7 +197,7 @@ const ServerConsole: React.FC = () => {
     };
 
     return (
-        <div className='relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border bg-[#0a0a0a]'>
+        <div className='relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border bg-terminal'>
             {!isConnected && (
                 <div className='absolute inset-0 z-10 flex items-center justify-center bg-background/60'>
                     <Spinner className='size-6' />

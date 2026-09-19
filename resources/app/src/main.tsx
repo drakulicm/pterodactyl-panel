@@ -9,8 +9,9 @@ import { createRoot } from 'react-dom/client';
 import { queryClient } from '@/lib/queryClient';
 import { watchSystemTheme } from '@/lib/theme';
 import { router } from '@/router';
+import { useThemeStore } from '@/stores/themeStore';
 
-watchSystemTheme();
+watchSystemTheme((resolved) => useThemeStore.getState().setResolvedTheme(resolved));
 
 const container = document.getElementById('app');
 

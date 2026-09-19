@@ -26,11 +26,14 @@ const applyTheme = (theme: Theme): void => {
     document.documentElement.style.colorScheme = resolved;
 };
 
-const watchSystemTheme = (): void => {
+const watchSystemTheme = (onChange: (resolved: ResolvedTheme) => void): void => {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (getStoredTheme() === 'system') {
-            applyTheme('system');
+        if (getStoredTheme() !== 'system') {
+            return;
         }
+
+        applyTheme('system');
+        onChange(resolveTheme('system'));
     });
 };
 

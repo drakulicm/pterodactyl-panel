@@ -2,7 +2,7 @@ import { LanguageDescription, type LanguageSupport } from '@codemirror/language'
 import { languages } from '@codemirror/language-data';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useBlocker, useLocation, useNavigate } from '@tanstack/react-router';
-import { githubDark } from '@uiw/codemirror-theme-github';
+import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror, { keymap } from '@uiw/react-codemirror';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -30,6 +30,7 @@ import { useServer } from '@/hooks/useServer';
 import { httpErrorToHuman } from '@/lib/http';
 import { basename, dirname, hashToPath, joinPath, pathToHash } from '@/lib/paths';
 import { hasPermission } from '@/lib/permissions';
+import { useThemeStore } from '@/stores/themeStore';
 
 const ServerFileEditPage: React.FC<{
     mode: 'edit' | 'new';
@@ -38,6 +39,7 @@ const ServerFileEditPage: React.FC<{
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const hash = useLocation({ select: (location) => location.hash });
+    const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
     const path = hashToPath(hash);
     const directory = mode === 'edit' ? dirname(path) : path;
     const fileName = mode === 'edit' ? basename(path) : undefined;
@@ -180,7 +182,7 @@ const ServerFileEditPage: React.FC<{
                         <div className='min-h-96 flex-1 overflow-hidden rounded-xl border'>
                             <CodeMirror
                                 value={content}
-                                theme={githubDark}
+                                theme={resolvedTheme === 'dark' ? githubDark : githubLight}
                                 height='100%'
                                 className='h-full text-xs [&_.cm-editor]:h-full [&_.cm-scroller]:font-mono'
                                 readOnly={!canSave}
