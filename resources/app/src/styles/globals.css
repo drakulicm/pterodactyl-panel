@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import './themes.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -74,8 +75,8 @@
     --success-foreground: oklch(0.985 0 0);
     --warning: oklch(0.55 0.13 70);
     --warning-foreground: oklch(0.985 0 0);
-    --terminal: oklch(0.985 0.003 265);
-    --terminal-foreground: oklch(0.205 0.008 265);
+    --terminal: #f9fafc;
+    --terminal-foreground: #15171b;
     --border: oklch(0.922 0.006 265);
     --input: oklch(0.922 0.006 265);
     --ring: oklch(0.55 0.15 265);
@@ -93,6 +94,25 @@
     --sidebar-accent-foreground: oklch(0.205 0.008 265);
     --sidebar-border: oklch(0.922 0.006 265);
     --sidebar-ring: oklch(0.55 0.15 265);
+    --terminal-ansi-black: #27272a;
+    --terminal-ansi-red: #b91c1c;
+    --terminal-ansi-green: #15803d;
+    --terminal-ansi-yellow: #a16207;
+    --terminal-ansi-blue: #1d4ed8;
+    --terminal-ansi-magenta: #7e22ce;
+    --terminal-ansi-cyan: #0e7490;
+    --terminal-ansi-white: #52525b;
+    --terminal-ansi-bright-black: #71717a;
+    --terminal-ansi-bright-red: #dc2626;
+    --terminal-ansi-bright-green: #16a34a;
+    --terminal-ansi-bright-yellow: #ca8a04;
+    --terminal-ansi-bright-blue: #2563eb;
+    --terminal-ansi-bright-magenta: #9333ea;
+    --terminal-ansi-bright-cyan: #0891b2;
+    --terminal-ansi-bright-white: #18181b;
+    --terminal-selection: #18181b26;
+    --terminal-match: #e4e4e7;
+    --terminal-match-active: #fde047;
 }
 
 .dark {
@@ -115,8 +135,8 @@
     --success-foreground: oklch(0.205 0.008 265);
     --warning: oklch(0.78 0.145 75);
     --warning-foreground: oklch(0.205 0.008 265);
-    --terminal: oklch(0.12 0.006 265);
-    --terminal-foreground: oklch(0.92 0.002 265);
+    --terminal: #050608;
+    --terminal-foreground: #e4e4e6;
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
     --ring: oklch(0.70 0.130 265);
@@ -133,6 +153,25 @@
     --sidebar-accent-foreground: oklch(0.985 0.002 265);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.70 0.130 265);
+    --terminal-ansi-black: #0a0a0a;
+    --terminal-ansi-red: #f87171;
+    --terminal-ansi-green: #4ade80;
+    --terminal-ansi-yellow: #facc15;
+    --terminal-ansi-blue: #60a5fa;
+    --terminal-ansi-magenta: #c084fc;
+    --terminal-ansi-cyan: #22d3ee;
+    --terminal-ansi-white: #d4d4d4;
+    --terminal-ansi-bright-black: #737373;
+    --terminal-ansi-bright-red: #fca5a5;
+    --terminal-ansi-bright-green: #86efac;
+    --terminal-ansi-bright-yellow: #fde047;
+    --terminal-ansi-bright-blue: #93c5fd;
+    --terminal-ansi-bright-magenta: #d8b4fe;
+    --terminal-ansi-bright-cyan: #67e8f9;
+    --terminal-ansi-bright-white: #fafafa;
+    --terminal-selection: #fafafa33;
+    --terminal-match: #44403c;
+    --terminal-match-active: #a16207;
 }
 
 @layer base {

@@ -11,7 +11,7 @@ import { watchSystemTheme } from '@/lib/theme';
 import { router } from '@/router';
 import { useThemeStore } from '@/stores/themeStore';
 
-watchSystemTheme((resolved) => useThemeStore.getState().setResolvedTheme(resolved));
+watchSystemTheme((resolved) => useThemeStore.getState().setResolvedMode(resolved));
 
 const container = document.getElementById('app');
 

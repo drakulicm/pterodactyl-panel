@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { ChevronsUpDownIcon, LogOutIcon, MonitorIcon, MoonIcon, SunIcon, UserIcon } from 'lucide-react';
+import { ChevronsUpDownIcon, LogOutIcon, MonitorIcon, MoonIcon, PaletteIcon, SunIcon, UserIcon } from 'lucide-react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -12,24 +12,29 @@ import {
     DropdownMenuRadioGroup,
     DropdownMenuRadioItem,
     DropdownMenuSeparator,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { http } from '@/lib/http';
-import type { Theme } from '@/lib/theme';
+import { THEMES, type ThemeId, type ThemeMode } from '@/lib/theme';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useThemeStore } from '@/stores/themeStore';
 
-const THEME_OPTIONS = [
+const MODE_OPTIONS = [
     { value: 'light', label: 'Light', icon: SunIcon },
     { value: 'dark', label: 'Dark', icon: MoonIcon },
     { value: 'system', label: 'System', icon: MonitorIcon },
-] as const satisfies readonly { value: Theme; label: string; icon: React.ComponentType }[];
+] as const satisfies readonly { value: ThemeMode; label: string; icon: React.ComponentType }[];
 
 const SidebarUserMenu: React.FC = () => {
     const user = useSessionStore((state) => state.user);
     const theme = useThemeStore((state) => state.theme);
+    const mode = useThemeStore((state) => state.mode);
     const setTheme = useThemeStore((state) => state.setTheme);
+    const setMode = useThemeStore((state) => state.setMode);
     const logout = useMutation({
         mutationFn: () => http.post('/auth/logout'),
         onSettled: () => {
@@ -62,12 +67,33 @@ const SidebarUserMenu: React.FC = () => {
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
-                            <DropdownMenuLabel>Theme</DropdownMenuLabel>
+                            <DropdownMenuSub>
+                                <DropdownMenuSubTrigger>
+                                    <PaletteIcon />
+                                    Theme
+                                </DropdownMenuSubTrigger>
+                                <DropdownMenuSubContent className='min-w-44'>
+                                    <DropdownMenuRadioGroup
+                                        value={theme}
+                                        onValueChange={(value) => setTheme(value as ThemeId)}
+                                    >
+                                        {THEMES.map(({ id, label }) => (
+                                            <DropdownMenuRadioItem key={id} value={id}>
+                                                {label}
+                                            </DropdownMenuRadioItem>
+                                        ))}
+                                    </DropdownMenuRadioGroup>
+                                </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                        </DropdownMenuGroup>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuGroup>
+                            <DropdownMenuLabel>Appearance</DropdownMenuLabel>
                             <DropdownMenuRadioGroup
-                                value={theme}
-                                onValueChange={(value) => setTheme(value as Theme)}
+                                value={mode}
+                                onValueChange={(value) => setMode(value as ThemeMode)}
                             >
-                                {THEME_OPTIONS.map(({ value, label, icon: Icon }) => (
+                                {MODE_OPTIONS.map(({ value, label, icon: Icon }) => (
                                     <DropdownMenuRadioItem key={value} value={value}>
                                         <Icon />
                                         {label}

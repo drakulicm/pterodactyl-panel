@@ -1,41 +1,73 @@
-type Theme = 'light' | 'dark' | 'system';
-type ResolvedTheme = 'light' | 'dark';
+type ThemeMode = 'light' | 'dark' | 'system';
+type ResolvedMode = 'light' | 'dark';
+type ThemeId = 'default' | 'tokyo-night' | 'catppuccin' | 'nord' | 'gruvbox' | 'rose-pine';
 
+const MODE_STORAGE_KEY = 'pterodactyl:theme-mode';
 const THEME_STORAGE_KEY = 'pterodactyl:theme';
 
-const THEMES = ['light', 'dark', 'system'] as const satisfies readonly Theme[];
+const MODES = ['light', 'dark', 'system'] as const satisfies readonly ThemeMode[];
 
-const isTheme = (value: unknown): value is Theme => THEMES.includes(value as Theme);
+const THEMES = [
+    { id: 'default', label: 'Default' },
+    { id: 'tokyo-night', label: 'Tokyo Night' },
+    { id: 'catppuccin', label: 'Catppuccin' },
+    { id: 'nord', label: 'Nord' },
+    { id: 'gruvbox', label: 'Gruvbox' },
+    { id: 'rose-pine', label: 'Rosé Pine' },
+] as const satisfies readonly { id: ThemeId; label: string }[];
+
+const isMode = (value: unknown): value is ThemeMode => MODES.includes(value as ThemeMode);
+
+const isTheme = (value: unknown): value is ThemeId => THEMES.some(({ id }) => id === value);
 
 const prefersDark = (): boolean => window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-const resolveTheme = (theme: Theme): ResolvedTheme => (theme === 'system' ? (prefersDark() ? 'dark' : 'light') : theme);
+const resolveMode = (mode: ThemeMode): ResolvedMode => (mode === 'system' ? (prefersDark() ? 'dark' : 'light') : mode);
 
-const getStoredTheme = (): Theme => {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+const getStoredMode = (): ThemeMode => {
+    const stored = localStorage.getItem(MODE_STORAGE_KEY);
 
-    return isTheme(stored) ? stored : 'system';
+    return isMode(stored) ? stored : 'system';
 };
 
-const storeTheme = (theme: Theme): void => localStorage.setItem(THEME_STORAGE_KEY, theme);
+const getStoredTheme = (): ThemeId => {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
 
-const applyTheme = (theme: Theme): void => {
-    const resolved = resolveTheme(theme);
+    return isTheme(stored) ? stored : 'default';
+};
 
+const storeMode = (mode: ThemeMode): void => localStorage.setItem(MODE_STORAGE_KEY, mode);
+
+const storeTheme = (theme: ThemeId): void => localStorage.setItem(THEME_STORAGE_KEY, theme);
+
+const applyTheme = (theme: ThemeId, mode: ThemeMode): void => {
+    const resolved = resolveMode(mode);
+
+    document.documentElement.dataset.theme = theme;
     document.documentElement.classList.toggle('dark', resolved === 'dark');
     document.documentElement.style.colorScheme = resolved;
 };
 
-const watchSystemTheme = (onChange: (resolved: ResolvedTheme) => void): void => {
+const watchSystemTheme = (onChange: (resolved: ResolvedMode) => void): void => {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (getStoredTheme() !== 'system') {
+        if (getStoredMode() !== 'system') {
             return;
         }
 
-        applyTheme('system');
-        onChange(resolveTheme('system'));
+        applyTheme(getStoredTheme(), 'system');
+        onChange(resolveMode('system'));
     });
 };
 
-export { applyTheme, getStoredTheme, resolveTheme, storeTheme, THEMES, watchSystemTheme };
-export type { ResolvedTheme, Theme };
+export {
+    applyTheme,
+    getStoredMode,
+    getStoredTheme,
+    MODES,
+    resolveMode,
+    storeMode,
+    storeTheme,
+    THEMES,
+    watchSystemTheme,
+};
+export type { ResolvedMode, ThemeId, ThemeMode };

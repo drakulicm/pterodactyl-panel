@@ -3,7 +3,6 @@ import { languages } from '@codemirror/language-data';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { githubDark } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -19,7 +18,9 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/c
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
+import { EDITOR_THEMES } from '@/lib/editorTheme';
 import { httpErrorToHuman } from '@/lib/http';
+import { useThemeStore } from '@/stores/themeStore';
 
 const schema = z.object({
     script_container: z.string().min(1, 'A script container is required.'),
@@ -35,6 +36,7 @@ const EggInstallTab: React.FC<{
     eggsInNest: AdminEgg[];
 }> = ({ nestId, egg, eggsInNest }) => {
     const queryClient = useQueryClient();
+    const resolvedMode = useThemeStore((state) => state.resolvedMode);
     const [script, setScript] = useState(egg.script.install ?? '');
     const [language, setLanguage] = useState<LanguageSupport | null>(null);
 
@@ -125,7 +127,7 @@ const EggInstallTab: React.FC<{
                         <div className='min-h-96 overflow-hidden rounded-xl border'>
                             <CodeMirror
                                 value={script}
-                                theme={githubDark}
+                                theme={EDITOR_THEMES[resolvedMode]}
                                 height='100%'
                                 className='h-full text-xs [&_.cm-editor]:min-h-96 [&_.cm-scroller]:font-mono'
                                 extensions={extensions}

@@ -1,10 +1,10 @@
 import '@xterm/xterm/css/xterm.css';
 
 import { FitAddon } from '@xterm/addon-fit';
-import { type ISearchOptions, SearchAddon } from '@xterm/addon-search';
+import { SearchAddon } from '@xterm/addon-search';
 import { Unicode11Addon } from '@xterm/addon-unicode11';
 import { WebLinksAddon } from '@xterm/addon-web-links';
-import { type ITheme, Terminal } from '@xterm/xterm';
+import { Terminal } from '@xterm/xterm';
 import { ChevronDownIcon, ChevronRightIcon, ChevronUpIcon, SearchIcon, XIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -15,8 +15,8 @@ import { usePersistedState } from '@/hooks/usePersistedState';
 import { useServer } from '@/hooks/useServer';
 import { useSocketEvent } from '@/hooks/useSocketEvent';
 import { hasPermission } from '@/lib/permissions';
-import type { ResolvedTheme } from '@/lib/theme';
 import { SocketEvent, SocketRequest } from '@/lib/socketEvents';
+import { getSearchDecorations, getTerminalTheme } from '@/lib/terminalTheme';
 import { useServerStore } from '@/stores/serverStore';
 import { useThemeStore } from '@/stores/themeStore';
 
@@ -25,72 +25,6 @@ const RESET = `${ESCAPE}[0m`;
 const TERMINAL_PRELUDE = `${ESCAPE}[1m${ESCAPE}[33mcontainer@pterodactyl~ ${RESET}`;
 const ERROR_STYLE = `${ESCAPE}[1m${ESCAPE}[41m`;
 const HISTORY_LIMIT = 32;
-
-const SEARCH_OPTIONS: Record<ResolvedTheme, ISearchOptions> = {
-    dark: {
-        decorations: {
-            matchBackground: '#44403c',
-            matchOverviewRuler: '#a1a1aa',
-            activeMatchBackground: '#a16207',
-            activeMatchColorOverviewRuler: '#facc15',
-        },
-    },
-    light: {
-        decorations: {
-            matchBackground: '#e4e4e7',
-            matchOverviewRuler: '#71717a',
-            activeMatchBackground: '#fde047',
-            activeMatchColorOverviewRuler: '#ca8a04',
-        },
-    },
-};
-
-const TERMINAL_THEMES: Record<ResolvedTheme, ITheme> = {
-    dark: {
-        background: '#00000000',
-        foreground: '#e5e5e5',
-        cursor: 'transparent',
-        black: '#0a0a0a',
-        red: '#f87171',
-        green: '#4ade80',
-        yellow: '#facc15',
-        blue: '#60a5fa',
-        magenta: '#c084fc',
-        cyan: '#22d3ee',
-        white: '#d4d4d4',
-        brightBlack: '#737373',
-        brightRed: '#fca5a5',
-        brightGreen: '#86efac',
-        brightYellow: '#fde047',
-        brightBlue: '#93c5fd',
-        brightMagenta: '#d8b4fe',
-        brightCyan: '#67e8f9',
-        brightWhite: '#fafafa',
-        selectionBackground: '#fafafa33',
-    },
-    light: {
-        background: '#00000000',
-        foreground: '#27272a',
-        cursor: 'transparent',
-        black: '#27272a',
-        red: '#b91c1c',
-        green: '#15803d',
-        yellow: '#a16207',
-        blue: '#1d4ed8',
-        magenta: '#7e22ce',
-        cyan: '#0e7490',
-        white: '#52525b',
-        brightBlack: '#71717a',
-        brightRed: '#dc2626',
-        brightGreen: '#16a34a',
-        brightYellow: '#ca8a04',
-        brightBlue: '#2563eb',
-        brightMagenta: '#9333ea',
-        brightCyan: '#0891b2',
-        brightWhite: '#18181b',
-        selectionBackground: '#18181b26',
-    },
-};
 
 const ServerConsole: React.FC = () => {
     const { server, permissions } = useServer();
@@ -103,7 +37,8 @@ const ServerConsole: React.FC = () => {
     const commandInput = useRef<HTMLInputElement>(null);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchResults, setSearchResults] = useState({ resultIndex: -1, resultCount: 0 });
-    const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
+    const theme = useThemeStore((state) => state.theme);
+    const resolvedMode = useThemeStore((state) => state.resolvedMode);
     const [history, setHistory] = usePersistedState<string[]>(`${server.id}:command_history`, []);
     const [historyIndex, setHistoryIndex] = useState(-1);
     const canSendCommands = hasPermission(permissions, 'control.console');
@@ -128,7 +63,7 @@ const ServerConsole: React.FC = () => {
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
             lineHeight: 1.2,
             scrollback: 5000,
-            theme: TERMINAL_THEMES[useThemeStore.getState().resolvedTheme],
+            theme: getTerminalTheme(),
         });
         const fitAddon = new FitAddon();
         const searchAddon = new SearchAddon();
@@ -189,9 +124,9 @@ const ServerConsole: React.FC = () => {
 
     useEffect(() => {
         if (terminal.current) {
-            terminal.current.options.theme = TERMINAL_THEMES[resolvedTheme];
+            terminal.current.options.theme = getTerminalTheme();
         }
-    }, [resolvedTheme]);
+    }, [theme, resolvedMode]);
 
     useEffect(() => {
         if (!socket || !isConnected) {
@@ -226,7 +161,7 @@ const ServerConsole: React.FC = () => {
             return;
         }
 
-        const options = SEARCH_OPTIONS[resolvedTheme];
+        const options = getSearchDecorations();
         if (direction === 'next') {
             search.current?.findNext(term, options);
 

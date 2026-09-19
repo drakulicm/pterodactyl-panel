@@ -36,15 +36,19 @@
             window.UiConfiguration = {!! json_encode(['newAdmin' => (bool) config('ui.new_admin')]) !!};
         </script>
 
-        {{-- Applies the stored theme before first paint. Storage key is mirrored in resources/app/src/lib/theme.ts. --}}
+        {{-- Applies the stored theme before first paint. Storage keys and theme ids are mirrored in resources/app/src/lib/theme.ts. --}}
         <script>
             (function () {
+                var themes = ['default', 'tokyo-night', 'catppuccin', 'nord', 'gruvbox', 'rose-pine'];
+
                 try {
-                    var stored = localStorage.getItem('pterodactyl:theme');
-                    var resolved = stored === 'light' || stored === 'dark'
-                        ? stored
+                    var theme = localStorage.getItem('pterodactyl:theme');
+                    var mode = localStorage.getItem('pterodactyl:theme-mode');
+                    var resolved = mode === 'light' || mode === 'dark'
+                        ? mode
                         : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
+                    document.documentElement.dataset.theme = themes.indexOf(theme) === -1 ? 'default' : theme;
                     document.documentElement.classList.toggle('dark', resolved === 'dark');
                     document.documentElement.style.colorScheme = resolved;
                 } catch (e) {}

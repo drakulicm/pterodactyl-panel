@@ -2,7 +2,6 @@ import { LanguageDescription, type LanguageSupport } from '@codemirror/language'
 import { languages } from '@codemirror/language-data';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useBlocker, useLocation, useNavigate } from '@tanstack/react-router';
-import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror, { keymap } from '@uiw/react-codemirror';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -27,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
 import { useServer } from '@/hooks/useServer';
+import { EDITOR_THEMES } from '@/lib/editorTheme';
 import { httpErrorToHuman } from '@/lib/http';
 import { basename, dirname, hashToPath, joinPath, pathToHash } from '@/lib/paths';
 import { hasPermission } from '@/lib/permissions';
@@ -39,7 +39,7 @@ const ServerFileEditPage: React.FC<{
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const hash = useLocation({ select: (location) => location.hash });
-    const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
+    const resolvedMode = useThemeStore((state) => state.resolvedMode);
     const path = hashToPath(hash);
     const directory = mode === 'edit' ? dirname(path) : path;
     const fileName = mode === 'edit' ? basename(path) : undefined;
@@ -182,7 +182,7 @@ const ServerFileEditPage: React.FC<{
                         <div className='min-h-96 flex-1 overflow-hidden rounded-xl border'>
                             <CodeMirror
                                 value={content}
-                                theme={resolvedTheme === 'dark' ? githubDark : githubLight}
+                                theme={EDITOR_THEMES[resolvedMode]}
                                 height='100%'
                                 className='h-full text-xs [&_.cm-editor]:h-full [&_.cm-scroller]:font-mono'
                                 readOnly={!canSave}
