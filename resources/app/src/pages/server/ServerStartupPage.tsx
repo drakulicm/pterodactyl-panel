@@ -5,8 +5,8 @@ import { serverStartupQueryOptions } from '@/api/server/startup';
 import { FormError } from '@/components/auth/FormError';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { DockerImageCard } from '@/components/server/startup/DockerImageCard';
+import { StartupCommandCard } from '@/components/server/startup/StartupCommandCard';
 import { VariableCard } from '@/components/server/startup/VariableCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useServer } from '@/hooks/useServer';
@@ -25,16 +25,7 @@ const ServerStartupPage: React.FC = () => {
                 {data && (
                     <>
                         <div className='grid items-start gap-4 lg:grid-cols-3'>
-                            <Card className='lg:col-span-2'>
-                                <CardHeader>
-                                    <CardTitle>Startup command</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <code className='block rounded-lg bg-muted p-3 font-mono text-sm break-words'>
-                                        {data.invocation}
-                                    </code>
-                                </CardContent>
-                            </Card>
+                            <StartupCommandCard invocation={data.invocation} />
                             <DockerImageCard dockerImages={data.dockerImages} />
                         </div>
                         <h2 className='mt-2 text-lg font-medium'>Variables</h2>
