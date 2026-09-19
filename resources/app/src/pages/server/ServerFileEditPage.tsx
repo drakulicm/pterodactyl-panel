@@ -1,7 +1,7 @@
 import { LanguageDescription, type LanguageSupport } from '@codemirror/language';
 import { languages } from '@codemirror/language-data';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useLocation, useNavigate } from '@tanstack/react-router';
+import { Link, useBlocker, useLocation, useNavigate } from '@tanstack/react-router';
 import { githubDark } from '@uiw/codemirror-theme-github';
 import CodeMirror, { keymap } from '@uiw/react-codemirror';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -13,6 +13,16 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { FileBreadcrumbs } from '@/components/server/files/FileBreadcrumbs';
 import { InputDialog, moveHint } from '@/components/server/files/FileDialogs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
@@ -34,6 +44,7 @@ const ServerFileEditPage: React.FC<{
     const draftKey = `pterodactyl:new-file:${server.uuid}:${directory}`;
 
     const [content, setContent] = useState(() => (mode === 'new' ? (sessionStorage.getItem(draftKey) ?? '') : ''));
+    const [savedContent, setSavedContent] = useState('');
     const [language, setLanguage] = useState<LanguageSupport | null>(null);
     const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
     const latestContent = useRef(content);
@@ -44,6 +55,7 @@ const ServerFileEditPage: React.FC<{
     useEffect(() => {
         if (file.data !== undefined) {
             setContent(file.data);
+            setSavedContent(file.data);
         }
     }, [file.data]);
 
@@ -75,6 +87,7 @@ const ServerFileEditPage: React.FC<{
         onSuccess: (_, name) => {
             queryClient.invalidateQueries({ queryKey: ['server', server.uuid, 'files'] });
             if (!name) {
+                setSavedContent(latestContent.current);
                 toast.success('File saved.');
                 return;
             }
@@ -87,6 +100,14 @@ const ServerFileEditPage: React.FC<{
             });
         },
         onError: (error) => toast.error(httpErrorToHuman(error)),
+    });
+
+    const isDirty = mode === 'edit' && !file.isPending && !file.error && content !== savedContent;
+
+    const blocker = useBlocker({
+        shouldBlockFn: () => isDirty,
+        enableBeforeUnload: () => isDirty,
+        withResolver: true,
     });
 
     const handleSave = () => {
@@ -132,6 +153,7 @@ const ServerFileEditPage: React.FC<{
                 >
                     Back
                 </Button>
+                {isDirty && <span className='text-xs text-warning'>Unsaved changes</span>}
                 {canSave && (
                     <Button size='sm' disabled={save.isPending || (mode === 'edit' && file.isPending)} onClick={handleSave}>
                         {save.isPending && <Spinner />}
@@ -169,6 +191,30 @@ const ServerFileEditPage: React.FC<{
                     )
                 )}
             </div>
+            <AlertDialog
+                open={blocker.status === 'blocked'}
+                onOpenChange={(isOpen) => {
+                    if (!isOpen) {
+                        blocker.reset?.();
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Discard unsaved changes</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {fileName ?? 'This file'} has changes that have not been saved to the server. Leaving now
+                            discards them.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => blocker.reset?.()}>Keep editing</AlertDialogCancel>
+                        <AlertDialogAction variant='destructive' onClick={() => blocker.proceed?.()}>
+                            Discard changes
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
             <InputDialog
                 isOpen={isNameDialogOpen}
                 title='Create file'
