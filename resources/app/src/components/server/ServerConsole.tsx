@@ -100,6 +100,7 @@ const ServerConsole: React.FC = () => {
     const terminal = useRef<Terminal | null>(null);
     const search = useRef<SearchAddon | null>(null);
     const searchInput = useRef<HTMLInputElement>(null);
+    const commandInput = useRef<HTMLInputElement>(null);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchResults, setSearchResults] = useState({ resultIndex: -1, resultCount: 0 });
     const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
@@ -149,6 +150,14 @@ const ServerConsole: React.FC = () => {
 
             if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
                 setIsSearchOpen(true);
+
+                return false;
+            }
+
+            const input = commandInput.current;
+            if (event.type === 'keydown' && input && !event.altKey && !event.ctrlKey && !event.metaKey && event.key.length === 1) {
+                input.focus();
+                input.value += event.key;
 
                 return false;
             }
@@ -331,6 +340,7 @@ const ServerConsole: React.FC = () => {
                 <div className='flex items-center gap-2 border-t px-3'>
                     <ChevronRightIcon className='size-4 shrink-0 text-muted-foreground' />
                     <Input
+                        ref={commandInput}
                         aria-label='Console command input.'
                         placeholder='Type a command...'
                         disabled={!socket || !isConnected}
