@@ -65,6 +65,34 @@ test.describe('admin nests and eggs', () => {
         ).toBeVisible();
     });
 
+    test('offers a URL and a file as egg import sources', async ({ page }) => {
+        await page.goto('/admin/nests');
+
+        await page.getByRole('button', { name: 'Import egg' }).click();
+        const dialog = page.getByRole('dialog');
+        await expect(dialog.getByRole('tab', { name: 'From URL' })).toHaveAttribute('aria-selected', 'true');
+
+        const importButton = dialog.getByRole('button', { name: 'Import' });
+        await expect(importButton).toBeDisabled();
+
+        await dialog.getByLabel('Egg URL').fill('not a url');
+        await expect(importButton).toBeDisabled();
+
+        await dialog.getByLabel('Egg URL').fill('https://example.com/egg.json');
+        await expect(importButton).toBeDisabled();
+
+        await dialog.getByLabel('Associated nest').click();
+        await page.getByRole('option').first().click();
+        await expect(importButton).toBeEnabled();
+
+        await dialog.getByRole('tab', { name: 'Upload file' }).click();
+        await expect(dialog.getByLabel('Egg file')).toBeVisible();
+        await expect(importButton).toBeDisabled();
+
+        await dialog.getByRole('button', { name: 'Cancel' }).click();
+        await expect(dialog).toBeHidden();
+    });
+
     test('reports an egg that is missing its configuration', async ({ page }) => {
         await page.goto('/admin/nests');
 

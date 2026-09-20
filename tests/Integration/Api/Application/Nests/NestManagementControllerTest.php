@@ -5,7 +5,10 @@ namespace Pterodactyl\Tests\Integration\Api\Application\Nests;
 use Pterodactyl\Models\Egg;
 use Pterodactyl\Models\Nest;
 use Illuminate\Http\Response;
+use Illuminate\Http\Client\Request;
 use Pterodactyl\Models\EggVariable;
+use Illuminate\Support\Facades\Http;
+use Pterodactyl\Services\Eggs\Sharing\EggExporterService;
 use Pterodactyl\Tests\Integration\Api\Application\ApplicationApiIntegrationTestCase;
 
 class NestManagementControllerTest extends ApplicationApiIntegrationTestCase
@@ -91,6 +94,84 @@ class NestManagementControllerTest extends ApplicationApiIntegrationTestCase
 
         $this->deleteJson($base)->assertStatus(Response::HTTP_NO_CONTENT);
         $this->assertDatabaseMissing('eggs', ['id' => $egg->id]);
+    }
+
+    /**
+     * Test that an egg can be imported by pasting a link to it, and that a link to the
+     * file's page on GitHub is turned into the raw file behind it.
+     */
+    public function testEggCanBeImportedFromAUrl()
+    {
+        $nest = Nest::factory()->create();
+        $document = $this->app->make(EggExporterService::class)->handle(Egg::query()->firstOrFail()->id);
+
+        Http::fake([
+            'raw.githubusercontent.com/*' => Http::response($document, 200, ['Content-Type' => 'text/plain']),
+        ]);
+
+        $response = $this->postJson("/api/application/nests/$nest->id/import", [
+            'import_url' => 'https://github.com/pelican-eggs/minecraft/blob/main/java/paper/egg-paper.json',
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJsonPath('object', 'egg');
+        $response->assertJsonPath('attributes.nest', $nest->id);
+        $this->assertDatabaseHas('eggs', ['id' => $response->json('attributes.id'), 'nest_id' => $nest->id]);
+
+        Http::assertSent(function (Request $request) {
+            return $request->url() === 'https://raw.githubusercontent.com/pelican-eggs/minecraft/main/java/paper/egg-paper.json';
+        });
+    }
+
+    /**
+     * Test that a URL which does not return JSON is reported rather than imported.
+     */
+    public function testImportFromAUrlThatIsNotJsonIsRejected()
+    {
+        $nest = Nest::factory()->create();
+
+        Http::fake(['example.com/*' => Http::response('<html><body>Not an egg</body></html>', 200)]);
+
+        $this->postJson("/api/application/nests/$nest->id/import", ['import_url' => 'https://example.com/eggs/paper'])
+            ->assertStatus(Response::HTTP_BAD_REQUEST)
+            ->assertJsonPath(
+                'errors.0.detail',
+                'The URL https://example.com/eggs/paper did not return a JSON document. Paste a link to the egg file itself, for example the "Raw" link on GitHub.',
+            );
+
+        $this->assertDatabaseMissing('eggs', ['nest_id' => $nest->id]);
+    }
+
+    /**
+     * Test that a URL the panel cannot download from is reported with the status code.
+     */
+    public function testImportFromAUrlThatCannotBeDownloadedIsRejected()
+    {
+        $nest = Nest::factory()->create();
+
+        Http::fake(['example.com/*' => Http::response('Not Found', 404)]);
+
+        $this->postJson("/api/application/nests/$nest->id/import", ['import_url' => 'https://example.com/missing.json'])
+            ->assertStatus(Response::HTTP_BAD_REQUEST)
+            ->assertJsonPath(
+                'errors.0.detail',
+                'Could not download the egg from https://example.com/missing.json: the server responded with HTTP 404.',
+            );
+    }
+
+    /**
+     * Test that only http(s) links are accepted, and that no request is made otherwise.
+     */
+    public function testImportFromANonHttpUrlIsRejected()
+    {
+        $nest = Nest::factory()->create();
+
+        Http::fake();
+
+        $this->postJson("/api/application/nests/$nest->id/import", ['import_url' => 'ftp://example.com/egg.json'])
+            ->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonPath('errors.0.meta.source_field', 'import_url');
+
+        Http::assertNothingSent();
     }
 
     /**

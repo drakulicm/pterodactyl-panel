@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import {
     type AdminNest,
     createNest,
+    type EggImportSource,
     getNestEggs,
     getNestServerCount,
     importEgg,
@@ -58,7 +59,7 @@ const NestsPage: React.FC = () => {
     });
 
     const runImport = useMutation({
-        mutationFn: ({ nestId, file }: { nestId: number; file: File }) => importEgg(nestId, file),
+        mutationFn: ({ nestId, source }: { nestId: number; source: EggImportSource }) => importEgg(nestId, source),
         onSuccess: (egg) => {
             toast.success('Successfully imported this Egg and its associated variables.');
             invalidate();
@@ -82,7 +83,7 @@ const NestsPage: React.FC = () => {
                     isPending={runImport.isPending}
                     error={runImport.error}
                     onOpenChange={setIsImportOpen}
-                    onSubmit={(nestId, file) => runImport.mutate({ nestId, file })}
+                    onSubmit={(nestId, source) => runImport.mutate({ nestId, source })}
                 />
                 <NestFormDialog
                     trigger={

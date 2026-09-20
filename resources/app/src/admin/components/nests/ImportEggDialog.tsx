@@ -1,7 +1,8 @@
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 
-import type { AdminNest } from '@/admin/api/nests';
+import type { AdminNest, EggImportSource } from '@/admin/api/nests';
+import { EggSourceFields } from '@/admin/components/nests/EggSourceFields';
 import { FormError } from '@/components/auth/FormError';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,7 +15,6 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { httpErrorToHuman } from '@/lib/http';
@@ -26,16 +26,16 @@ const ImportEggDialog: React.FC<{
     isPending: boolean;
     error: unknown;
     onOpenChange: (isOpen: boolean) => void;
-    onSubmit: (nestId: number, file: File) => void;
+    onSubmit: (nestId: number, source: EggImportSource) => void;
 }> = ({ trigger, nests, isOpen, isPending, error, onOpenChange, onSubmit }) => {
-    const [file, setFile] = useState<File | null>(null);
+    const [source, setSource] = useState<EggImportSource | null>(null);
     const [nestId, setNestId] = useState<string>('');
 
     const nestItems = nests.map((nest) => ({ value: String(nest.id), label: `${nest.name} <${nest.author}>` }));
 
     const handleOpenChange = (open: boolean) => {
         if (!open) {
-            setFile(null);
+            setSource(null);
             setNestId('');
         }
 
@@ -43,11 +43,11 @@ const ImportEggDialog: React.FC<{
     };
 
     const handleSubmit = () => {
-        if (!file || !nestId) {
+        if (!source || !nestId) {
             return;
         }
 
-        onSubmit(Number(nestId), file);
+        onSubmit(Number(nestId), source);
     };
 
     return (
@@ -57,23 +57,12 @@ const ImportEggDialog: React.FC<{
                 <DialogHeader>
                     <DialogTitle>Import an egg</DialogTitle>
                     <DialogDescription>
-                        Upload an exported egg document to add it to one of your nests.
+                        Add an exported egg to one of your nests from a link or from a file on your computer.
                     </DialogDescription>
                 </DialogHeader>
                 <FieldGroup className='py-4'>
                     <FormError message={error ? httpErrorToHuman(error) : null} />
-                    <Field>
-                        <FieldLabel htmlFor='import-egg-file'>Egg file</FieldLabel>
-                        <Input
-                            id='import-egg-file'
-                            type='file'
-                            accept='application/json'
-                            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-                        />
-                        <FieldDescription>
-                            Select the .json file for the new egg that you wish to import.
-                        </FieldDescription>
-                    </Field>
+                    <EggSourceFields idPrefix='import-egg' onChange={setSource} />
                     <Field>
                         <FieldLabel htmlFor='import-egg-nest'>Associated nest</FieldLabel>
                         <Select
@@ -102,7 +91,7 @@ const ImportEggDialog: React.FC<{
                     <Button variant='outline' onClick={() => handleOpenChange(false)}>
                         Cancel
                     </Button>
-                    <Button disabled={!file || !nestId || isPending} onClick={handleSubmit}>
+                    <Button disabled={!source || !nestId || isPending} onClick={handleSubmit}>
                         {isPending && <Spinner />}
                         Import
                     </Button>

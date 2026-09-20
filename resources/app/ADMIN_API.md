@@ -167,10 +167,21 @@ is always the panel's `APP_SERVICE_AUTHOR`.
  "meta": {"resource": "http://localhost:8080/api/application/nests/5"}}
 ```
 
-**Import** accepts either
+**Import** accepts any one of
 
-- `multipart/form-data` with `import_file` (JSON file, max 1000 KB, mimetype `application/json` or `text/plain`), or
+- `multipart/form-data` with `import_file` (JSON file, max 1000 KB, mimetype `application/json` or `text/plain`),
+- a JSON body `{"import_url": "https://..."}` (string, max 2048, `http`/`https` only), which the panel downloads
+  itself, or
 - `Content-Type: application/json` with the exported egg document itself as the body (must contain `meta.version`).
+
+`import_url` is rewritten before the request is made, so a GitHub blob page
+(`https://github.com/<owner>/<repo>/blob/<ref>/<path>`) or a Gist page
+(`https://gist.github.com/<user>/<id>`) can be pasted as it appears in the browser and the raw file behind it is
+fetched. Any other URL is requested verbatim. The download uses the panel's Guzzle timeouts
+(`pterodactyl.guzzle.*`) and is capped at 1000 KB. A non-2xx response, a body that is not JSON, an oversized body or a
+connection failure is a `400` `InvalidFileUploadException` naming the URL; the remote body is never echoed back. Note
+that this makes the panel issue an outbound request to an operator-chosen address, which is the same trust level as the
+node FQDN and database host fields.
 
 An unrecognised document (`meta.version` not `PTDL_v1`/`PTDL_v2`) is a `400` `InvalidFileUploadException`.
 

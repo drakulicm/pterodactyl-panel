@@ -5,6 +5,7 @@ namespace Pterodactyl\Tests\Integration\Api\Application\Nests;
 use Pterodactyl\Models\Egg;
 use Pterodactyl\Models\Nest;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Http;
 use Pterodactyl\Tests\Integration\Api\Application\ApplicationApiIntegrationTestCase;
 
 class EggManagementControllerTest extends ApplicationApiIntegrationTestCase
@@ -163,6 +164,26 @@ class EggManagementControllerTest extends ApplicationApiIntegrationTestCase
         $this->assertCount(1, $variables);
         $this->assertSame('ADDED', $variables->first()->env_variable);
         $this->assertDatabaseMissing('egg_variables', ['egg_id' => $egg->id, 'env_variable' => 'REMOVED']);
+    }
+
+    /**
+     * Test that an existing egg can be updated from a link to an exported egg.
+     */
+    public function testEggCanBeUpdatedFromAUrl()
+    {
+        $egg = $this->createEgg();
+
+        $exported = json_decode($this->get("/api/application/nests/$egg->nest_id/eggs/$egg->id/export")->getContent(), true);
+        $exported['name'] = 'Updated From URL';
+
+        Http::fake(['raw.githubusercontent.com/*' => Http::response(json_encode($exported), 200)]);
+
+        $response = $this->putJson("/api/application/nests/$egg->nest_id/eggs/$egg->id/import", [
+            'import_url' => 'https://github.com/owner/eggs/blob/main/egg.json',
+        ]);
+        $response->assertOk();
+        $response->assertJsonPath('attributes.name', 'Updated From URL');
+        $this->assertSame('Updated From URL', $egg->refresh()->name);
     }
 
     /**

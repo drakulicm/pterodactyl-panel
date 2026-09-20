@@ -8,6 +8,7 @@ import {
     type AdminEgg,
     type AdminEggPayload,
     deleteEgg,
+    type EggImportSource,
     eggNestLookupQueryOptions,
     eggQueryOptions,
     exportEgg,
@@ -22,6 +23,7 @@ import {
 } from '@/admin/api/nests';
 import { EggConfigurationForm, type EggFormValues } from '@/admin/components/nests/EggConfigurationForm';
 import { EggInstallTab } from '@/admin/components/nests/EggInstallTab';
+import { EggSourceFields } from '@/admin/components/nests/EggSourceFields';
 import { EggVariablesTab } from '@/admin/components/nests/EggVariablesTab';
 import { FormError } from '@/components/auth/FormError';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -46,8 +48,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { FieldGroup } from '@/components/ui/field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -68,66 +69,63 @@ const toFormValues = (egg: AdminEgg): EggFormValues => ({
     config_files: toJsonText(egg.config.files),
 });
 
-const UpdateFromFileDialog: React.FC<{
+const UpdateFromSourceDialog: React.FC<{
     nestId: number;
     eggId: number;
 }> = ({ nestId, eggId }) => {
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false);
-    const [file, setFile] = useState<File | null>(null);
+    const [source, setSource] = useState<EggImportSource | null>(null);
 
     const reimport = useMutation({
-        mutationFn: (selected: File) => reimportEgg(nestId, eggId, selected),
+        mutationFn: (selected: EggImportSource) => reimportEgg(nestId, eggId, selected),
         onSuccess: () => {
-            toast.success('This Egg has been updated using the file provided.');
+            toast.success('This Egg has been updated from the egg document provided.');
             invalidateNests(queryClient);
-            setFile(null);
+            setSource(null);
             setIsOpen(false);
         },
         onError: (error) => toast.error(httpErrorToHuman(error)),
     });
 
+    const handleOpenChange = (open: boolean) => {
+        if (!open) {
+            setSource(null);
+        }
+
+        setIsOpen(open);
+    };
+
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger
                 render={
                     <Button type='button' variant='outline'>
                         <UploadIcon />
-                        Update from file
+                        Update from file or URL
                     </Button>
                 }
             />
             <DialogContent className='sm:max-w-lg'>
                 <DialogHeader>
-                    <DialogTitle>Update egg from file</DialogTitle>
+                    <DialogTitle>Update egg from file or URL</DialogTitle>
                     <DialogDescription>
-                        This will not change any existing startup strings or Docker images for existing servers.
+                        Replace this egg&apos;s settings with an exported egg document. This will not change any
+                        existing startup strings or Docker images for existing servers.
                     </DialogDescription>
                 </DialogHeader>
                 <FieldGroup className='py-4'>
                     <FormError message={reimport.error ? httpErrorToHuman(reimport.error) : null} />
-                    <Field>
-                        <FieldLabel htmlFor='reimport-egg-file'>Egg file</FieldLabel>
-                        <Input
-                            id='reimport-egg-file'
-                            type='file'
-                            accept='application/json'
-                            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-                        />
-                        <FieldDescription>
-                            If you would like to replace settings for this Egg by uploading a new JSON file, simply
-                            select it here and press &quot;Update egg&quot;.
-                        </FieldDescription>
-                    </Field>
+                    <EggSourceFields idPrefix='reimport-egg' onChange={setSource} />
                 </FieldGroup>
                 <DialogFooter>
-                    <Button variant='outline' onClick={() => setIsOpen(false)}>
+                    <Button variant='outline' onClick={() => handleOpenChange(false)}>
                         Cancel
                     </Button>
                     <Button
                         variant='destructive'
-                        disabled={!file || reimport.isPending}
-                        onClick={() => file && reimport.mutate(file)}
+                        disabled={!source || reimport.isPending}
+                        onClick={() => source && reimport.mutate(source)}
                     >
                         {reimport.isPending && <Spinner />}
                         Update egg
@@ -247,7 +245,7 @@ const EggViewPage: React.FC = () => {
                                             <DownloadIcon />
                                             Export
                                         </Button>
-                                        <UpdateFromFileDialog nestId={nestId} eggId={Number(eggId)} />
+                                        <UpdateFromSourceDialog nestId={nestId} eggId={Number(eggId)} />
                                         <AlertDialog>
                                             <AlertDialogTrigger
                                                 render={

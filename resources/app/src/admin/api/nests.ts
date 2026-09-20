@@ -189,11 +189,31 @@ const readEggDocument = async (file: File): Promise<unknown> => {
     return document;
 };
 
-const importEgg = async (nestId: number, file: File) =>
-    adminPost<AdminEgg>(`/nests/${nestId}/import`, await readEggDocument(file));
+type EggImportSource = { file: File } | { url: string };
 
-const reimportEgg = async (nestId: number, eggId: number, file: File) => {
-    const { data } = await http.put(`${BASE}/nests/${nestId}/eggs/${eggId}/import`, await readEggDocument(file));
+const toEggImportUrl = (value: string): string | null => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    try {
+        const url = new URL(trimmed);
+
+        return url.protocol === 'http:' || url.protocol === 'https:' ? trimmed : null;
+    } catch {
+        return null;
+    }
+};
+
+const toEggImportBody = async (source: EggImportSource): Promise<unknown> =>
+    'file' in source ? readEggDocument(source.file) : { import_url: source.url };
+
+const importEgg = async (nestId: number, source: EggImportSource) =>
+    adminPost<AdminEgg>(`/nests/${nestId}/import`, await toEggImportBody(source));
+
+const reimportEgg = async (nestId: number, eggId: number, source: EggImportSource) => {
+    const { data } = await http.put(`${BASE}/nests/${nestId}/eggs/${eggId}/import`, await toEggImportBody(source));
 
     return (data as AdminResource<AdminEgg>).attributes;
 };
@@ -284,6 +304,7 @@ export {
     nestsQueryOptions,
     reimportEgg,
     toDockerImagesText,
+    toEggImportUrl,
     toJsonText,
     updateEgg,
     updateEggScript,
@@ -299,4 +320,5 @@ export type {
     AdminNest,
     AdminNestPayload,
     AdminNestServer,
+    EggImportSource,
 };
