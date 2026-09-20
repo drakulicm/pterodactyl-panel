@@ -25,7 +25,7 @@ const SettingsLayout: React.FC<{
                             key={tab.to}
                             to={tab.to}
                             activeOptions={{ exact: true }}
-                            className='rounded-md px-3 py-1 text-sm font-medium text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground'
+                            className='rounded-md px-3 py-1 text-sm font-medium text-muted-foreground transition-colors duration-150 ease hover:text-foreground'
                             activeProps={{ className: 'bg-background text-foreground shadow-sm' }}
                         >
                             {tab.label}

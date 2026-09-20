@@ -54,7 +54,7 @@ const PermissionGroupCard: React.FC<{
                         <div
                             key={permission}
                             className={cn(
-                                'flex items-start gap-3 rounded-md p-2 transition-colors duration-200 ease-out',
+                                'flex items-start gap-3 rounded-md p-2 transition-colors duration-150 ease',
                                 isDisabled ? 'opacity-50' : 'hover:bg-muted/50',
                             )}
                         >

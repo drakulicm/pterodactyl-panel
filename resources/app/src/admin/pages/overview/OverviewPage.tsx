@@ -39,7 +39,7 @@ const CountCard: React.FC<{
 
     return (
         <Link to={to} className='group rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50'>
-            <Card className='transition-colors duration-200 ease-out group-hover:bg-accent/40'>
+            <Card className='transition-colors duration-150 ease group-hover:bg-accent/40'>
                 <CardHeader>
                     <CardDescription className='flex items-center gap-2'>
                         <Icon className='size-4' />

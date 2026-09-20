@@ -76,7 +76,7 @@ const ServerCard: React.FC<{
         <Link to='/server/$id' params={{ id: server.id }} className='group/server block rounded-xl outline-none'>
             <Card
                 ref={cardRef}
-                className='h-full transition-colors duration-200 ease-out group-hover/server:bg-muted/40 group-focus-visible/server:ring-3 group-focus-visible/server:ring-ring/50'
+                className='h-full transition-colors duration-150 ease group-hover/server:bg-muted/40 group-focus-visible/server:ring-3 group-focus-visible/server:ring-ring/50'
             >
                 <CardHeader>
                     <CardTitle className='flex items-center gap-2'>

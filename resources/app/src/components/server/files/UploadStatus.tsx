@@ -34,7 +34,10 @@ const UploadStatus: React.FC = () => {
                                     {bytesToString(upload.loaded)} / {bytesToString(upload.total)}
                                 </span>
                             </div>
-                            <Progress value={upload.total > 0 ? (upload.loaded / upload.total) * 100 : 0} />
+                            <Progress
+                                value={upload.total > 0 ? (upload.loaded / upload.total) * 100 : 0}
+                                indicatorClassName='transition-none'
+                            />
                         </div>
                         <Button
                             variant='ghost'

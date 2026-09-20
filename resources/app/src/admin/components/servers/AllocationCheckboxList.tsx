@@ -19,7 +19,7 @@ const AllocationCheckboxList: React.FC<{
             {allocations.map((allocation) => (
                 <label
                     key={allocation.id}
-                    className='flex cursor-pointer items-center gap-2 px-3 py-2 text-sm transition-colors duration-200 ease-out hover:bg-muted/50'
+                    className='flex cursor-pointer items-center gap-2 px-3 py-2 text-sm transition-colors duration-150 ease hover:bg-muted/50'
                 >
                     <Checkbox
                         checked={selected.includes(allocation.id)}
