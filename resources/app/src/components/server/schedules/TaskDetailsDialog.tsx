@@ -73,7 +73,7 @@ const TaskDetailsDialog: React.FC<{
 }> = ({ schedule, task, isOpen, onOpenChange }) => {
     const { server } = useServer();
     const queryClient = useQueryClient();
-    const form = useForm<Values>({ resolver: zodResolver(schema), values: toValues(task) });
+    const form = useForm({ resolver: zodResolver(schema), values: toValues(task) });
     const action = form.watch('action');
     const hasBackupsDisabled = server.featureLimits.backups === 0;
 

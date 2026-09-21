@@ -49,16 +49,16 @@ const isTwoFactorRequiredError = (error: unknown): boolean => {
     return errors?.[0]?.code === 'TwoFactorAuthRequiredException';
 };
 
-interface FractalResponseData<Attributes = Record<string, unknown>> {
+interface FractalResponseData<TAttributes = Record<string, unknown>> {
     object: string;
-    attributes: Attributes & {
+    attributes: TAttributes & {
         relationships?: Record<string, FractalResponseData | FractalResponseList | null | undefined>;
     };
 }
 
-interface FractalResponseList<Attributes = Record<string, unknown>> {
+interface FractalResponseList<TAttributes = Record<string, unknown>> {
     object: 'list';
-    data: FractalResponseData<Attributes>[];
+    data: FractalResponseData<TAttributes>[];
 }
 
 interface FractalPagination {
@@ -69,7 +69,7 @@ interface FractalPagination {
     total_pages: number;
 }
 
-interface FractalPaginatedResponse<Attributes = Record<string, unknown>> extends FractalResponseList<Attributes> {
+interface FractalPaginatedResponse<TAttributes = Record<string, unknown>> extends FractalResponseList<TAttributes> {
     meta: { pagination: FractalPagination };
 }
 
@@ -96,10 +96,10 @@ const getPaginationSet = (data: FractalPagination): PaginationDataSet => ({
 
 type QueryBuilderFilterValue = string | number | boolean | null;
 
-interface QueryBuilderParams<FilterKeys extends string = string, SortKeys extends string = string> {
+interface QueryBuilderParams<TFilterKeys extends string = string, TSortKeys extends string = string> {
     page?: number;
-    filters?: { [K in FilterKeys]?: QueryBuilderFilterValue | readonly QueryBuilderFilterValue[] };
-    sorts?: { [K in SortKeys]?: -1 | 0 | 1 | 'asc' | 'desc' | null };
+    filters?: { [K in TFilterKeys]?: QueryBuilderFilterValue | readonly QueryBuilderFilterValue[] };
+    sorts?: { [K in TSortKeys]?: -1 | 0 | 1 | 'asc' | 'desc' | null };
 }
 
 const withQueryBuilderParams = (data?: QueryBuilderParams): Record<string, unknown> => {

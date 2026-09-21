@@ -11,7 +11,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import { usePersistedState } from '@/hooks/usePersistedState';
 import { useServer } from '@/hooks/useServer';
 import { useSocketEvent } from '@/hooks/useSocketEvent';
 import { hasPermission } from '@/lib/permissions';
@@ -39,7 +38,27 @@ const ServerConsole: React.FC = () => {
     const [searchResults, setSearchResults] = useState({ resultIndex: -1, resultCount: 0 });
     const theme = useThemeStore((state) => state.theme);
     const resolvedMode = useThemeStore((state) => state.resolvedMode);
-    const [history, setHistory] = usePersistedState<string[]>(`${server.id}:command_history`, []);
+    const historyKey = `${server.id}:command_history`;
+    const [history, setHistory] = useState<string[]>(() => {
+        try {
+            const item = localStorage.getItem(historyKey);
+
+            return item === null ? [] : (JSON.parse(item) as string[]);
+        } catch {
+            return [];
+        }
+    });
+    const hasHistoryChanged = useRef(false);
+
+    useEffect(() => {
+        if (!hasHistoryChanged.current) {
+            hasHistoryChanged.current = true;
+
+            return;
+        }
+
+        localStorage.setItem(historyKey, JSON.stringify(history));
+    }, [historyKey, history]);
     const [historyIndex, setHistoryIndex] = useState(-1);
     const canSendCommands = hasPermission(permissions, 'control.console');
 

@@ -48,7 +48,7 @@ const ApiKeyCreateDialog: React.FC<{
     const [permissions, setPermissions] = useState<Record<string, string>>({});
     const resources = useQuery(adminApiKeyResourcesQueryOptions);
 
-    const form = useForm<z.infer<typeof schema>>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: { memo: '' },
     });

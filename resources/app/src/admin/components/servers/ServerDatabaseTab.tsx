@@ -49,7 +49,7 @@ const ServerDatabaseTab: React.FC<{ server: AdminServer }> = ({ server }) => {
 
     const hostItems = (hosts.data?.items ?? []).map((host) => ({ value: String(host.id), label: host.name }));
 
-    const form = useForm<FormValues>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: { host: '', database: '', remote: '%' },
     });

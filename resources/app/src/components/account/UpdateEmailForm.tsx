@@ -20,7 +20,7 @@ const schema = z.object({
 });
 
 const UpdateEmailForm: React.FC = () => {
-    const form = useForm<z.infer<typeof schema>>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: { email: useSessionStore.getState().user?.email ?? '', password: '' },
     });

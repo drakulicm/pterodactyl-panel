@@ -217,7 +217,7 @@ const NodeAllocationsTab: React.FC<{
 
     const invalidate = () => queryClient.invalidateQueries({ queryKey: ['admin', `/nodes/${nodeId}/allocations`] });
 
-    const form = useForm<FormValues>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: { ip: '', alias: '', ports: '' },
     });

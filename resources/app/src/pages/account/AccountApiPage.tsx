@@ -38,7 +38,7 @@ const AccountApiPage: React.FC = () => {
     const queryClient = useQueryClient();
     const [createdToken, setCreatedToken] = useState<string | null>(null);
     const keys = useQuery(apiKeysQueryOptions);
-    const form = useForm<z.infer<typeof schema>>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: { description: '', allowedIps: '' },
     });

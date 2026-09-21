@@ -85,8 +85,6 @@ const schema = z.object({
     environment: z.record(z.string(), z.string()),
 });
 
-type FormValues = z.infer<typeof schema>;
-
 const ServerNewPage: React.FC = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -96,7 +94,7 @@ const ServerNewPage: React.FC = () => {
     const locations = useQuery(serverLocationsQueryOptions);
     const nests = useQuery(serverNestsQueryOptions);
 
-    const form = useForm<FormValues>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: {
             name: '',

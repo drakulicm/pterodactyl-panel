@@ -48,7 +48,7 @@ const UserForm: React.FC<{
         label,
     }));
 
-    const form = useForm<UserFormValues>({ resolver: zodResolver(schema), defaultValues });
+    const form = useForm({ resolver: zodResolver(schema), defaultValues });
     const { errors } = form.formState;
 
     const handleSubmit = form.handleSubmit((values) =>

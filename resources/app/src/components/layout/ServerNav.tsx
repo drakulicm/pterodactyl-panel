@@ -38,12 +38,7 @@ const SERVER_LINKS = [
     { to: '/server/$id/startup', label: 'Startup', icon: PlayCircleIcon, permission: 'startup.*' },
     { to: '/server/$id/settings', label: 'Settings', icon: SettingsIcon, permission: ['settings.*', 'file.sftp'] },
     { to: '/server/$id/activity', label: 'Activity', icon: HistoryIcon, permission: 'activity.*' },
-] as const satisfies readonly {
-    to: string;
-    label: string;
-    icon: React.ComponentType;
-    permission: string | readonly string[] | null;
-}[];
+] as const;
 
 const isLinkActive = (pathname: string, target: string, isRoot: boolean): boolean => {
     const current = pathname.replace(/\/$/, '');

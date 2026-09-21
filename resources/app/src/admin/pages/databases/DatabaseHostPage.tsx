@@ -47,7 +47,7 @@ const DatabaseHostPage: React.FC = () => {
     const attributes = host.data;
     const databases = attributes ? getHostDatabases(attributes) : [];
 
-    const form = useForm<DatabaseHostFormValues>({
+    const form = useForm({
         resolver: zodResolver(databaseHostSchema),
         defaultValues: { name: '', host: '', port: '3306', username: '', password: '', nodeId: NO_NODE },
         values: attributes

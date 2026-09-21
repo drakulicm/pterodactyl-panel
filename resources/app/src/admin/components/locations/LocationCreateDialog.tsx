@@ -32,7 +32,7 @@ const LocationCreateDialog: React.FC = () => {
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false);
 
-    const form = useForm<LocationFormValues>({
+    const form = useForm({
         resolver: zodResolver(locationSchema),
         defaultValues: DEFAULTS,
     });

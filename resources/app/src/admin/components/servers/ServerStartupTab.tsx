@@ -45,7 +45,7 @@ const ServerStartupTab: React.FC<{ server: AdminServer }> = ({ server }) => {
     const nests = useQuery(serverNestsQueryOptions);
     const appliedEggRef = useRef<string>(String(server.egg));
 
-    const form = useForm<FormValues>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: {
             startup: server.container.startup_command,

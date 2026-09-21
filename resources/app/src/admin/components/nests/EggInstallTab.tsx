@@ -40,7 +40,7 @@ const EggInstallTab: React.FC<{
     const [script, setScript] = useState(egg.script.install ?? '');
     const [language, setLanguage] = useState<LanguageSupport | null>(null);
 
-    const form = useForm<ScriptFormValues>({
+    const form = useForm({
         resolver: zodResolver(schema),
         values: {
             script_container: egg.script.container,

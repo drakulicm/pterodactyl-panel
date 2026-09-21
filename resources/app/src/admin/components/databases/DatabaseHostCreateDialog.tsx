@@ -43,7 +43,7 @@ const DatabaseHostCreateDialog: React.FC = () => {
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false);
 
-    const form = useForm<DatabaseHostFormValues>({
+    const form = useForm({
         resolver: zodResolver(databaseHostSchema),
         defaultValues: DEFAULTS,
     });

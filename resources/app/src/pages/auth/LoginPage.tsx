@@ -22,7 +22,7 @@ const schema = z.object({
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
     const { getToken } = useRecaptcha();
-    const form = useForm<z.infer<typeof schema>>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: { username: '', password: '' },
     });

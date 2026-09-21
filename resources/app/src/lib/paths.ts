@@ -24,4 +24,4 @@ const dirname = (path: string): string => cleanDirectoryPath(path.split('/').sli
 
 const basename = (path: string): string => path.split('/').filter(Boolean).pop() ?? '';
 
-export { basename, cleanDirectoryPath, dirname, hashToPath, joinPath, pathToHash };
+export { basename, dirname, hashToPath, joinPath, pathToHash };

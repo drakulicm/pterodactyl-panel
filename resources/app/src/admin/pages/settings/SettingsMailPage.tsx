@@ -6,7 +6,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { mailSettingsQueryOptions, sendTestMail, updateMailSettings } from '@/admin/api/settings';
+import { type MailSettings, mailSettingsQueryOptions, sendTestMail, updateMailSettings } from '@/admin/api/settings';
 import { SettingsLayout } from '@/admin/components/settings/SettingsLayout';
 import { FormError } from '@/components/auth/FormError';
 import {
@@ -51,6 +51,29 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+const DEFAULT_VALUES: FormValues = {
+    host: '',
+    port: '',
+    encryption: 'none',
+    username: '',
+    password: '',
+    fromAddress: '',
+    fromName: '',
+};
+
+const toFormValues = (attributes: MailSettings): FormValues => ({
+    host: attributes['mail:mailers:smtp:host'] ?? '',
+    port: String(attributes['mail:mailers:smtp:port'] ?? ''),
+    encryption:
+        attributes['mail:mailers:smtp:encryption'] === 'tls' || attributes['mail:mailers:smtp:encryption'] === 'ssl'
+            ? attributes['mail:mailers:smtp:encryption']
+            : 'none',
+    username: attributes['mail:mailers:smtp:username'] ?? '',
+    password: '',
+    fromAddress: attributes['mail:from:address'] ?? '',
+    fromName: attributes['mail:from:name'] ?? '',
+});
+
 const SettingsMailPage: React.FC = () => {
     const queryClient = useQueryClient();
     const [isTestOpen, setIsTestOpen] = useState(false);
@@ -58,32 +81,10 @@ const SettingsMailPage: React.FC = () => {
     const attributes = settings.data?.attributes;
     const isDisabled = settings.data?.meta.disabled ?? false;
 
-    const form = useForm<FormValues>({
+    const form = useForm({
         resolver: zodResolver(schema),
-        defaultValues: {
-            host: '',
-            port: '',
-            encryption: 'none',
-            username: '',
-            password: '',
-            fromAddress: '',
-            fromName: '',
-        },
-        values: attributes
-            ? {
-                  host: attributes['mail:mailers:smtp:host'] ?? '',
-                  port: String(attributes['mail:mailers:smtp:port'] ?? ''),
-                  encryption:
-                      attributes['mail:mailers:smtp:encryption'] === 'tls' ||
-                      attributes['mail:mailers:smtp:encryption'] === 'ssl'
-                          ? attributes['mail:mailers:smtp:encryption']
-                          : 'none',
-                  username: attributes['mail:mailers:smtp:username'] ?? '',
-                  password: '',
-                  fromAddress: attributes['mail:from:address'] ?? '',
-                  fromName: attributes['mail:from:name'] ?? '',
-              }
-            : undefined,
+        defaultValues: DEFAULT_VALUES,
+        values: attributes ? toFormValues(attributes) : undefined,
     });
     const { errors } = form.formState;
 

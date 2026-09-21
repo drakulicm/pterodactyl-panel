@@ -5,7 +5,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { advancedSettingsQueryOptions, updateAdvancedSettings } from '@/admin/api/settings';
+import { type AdvancedSettings, advancedSettingsQueryOptions, updateAdvancedSettings } from '@/admin/api/settings';
 import { SettingsLayout } from '@/admin/components/settings/SettingsLayout';
 import { FormError } from '@/components/auth/FormError';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -87,6 +87,28 @@ const schema = z
 
 type FormValues = z.infer<typeof schema>;
 
+const DEFAULT_VALUES: FormValues = {
+    recaptchaEnabled: 'false',
+    recaptchaWebsiteKey: '',
+    recaptchaSecretKey: '',
+    connectTimeout: '5',
+    requestTimeout: '15',
+    allocationsEnabled: 'false',
+    rangeStart: '',
+    rangeEnd: '',
+};
+
+const toFormValues = (attributes: AdvancedSettings): FormValues => ({
+    recaptchaEnabled: attributes['recaptcha:enabled'] ? 'true' : 'false',
+    recaptchaWebsiteKey: attributes['recaptcha:website_key'] ?? '',
+    recaptchaSecretKey: '',
+    connectTimeout: String(attributes['pterodactyl:guzzle:connect_timeout'] ?? ''),
+    requestTimeout: String(attributes['pterodactyl:guzzle:timeout'] ?? ''),
+    allocationsEnabled: attributes['pterodactyl:client_features:allocations:enabled'] ? 'true' : 'false',
+    rangeStart: String(attributes['pterodactyl:client_features:allocations:range_start'] ?? ''),
+    rangeEnd: String(attributes['pterodactyl:client_features:allocations:range_end'] ?? ''),
+});
+
 const StatusSelect: React.FC<{
     id: string;
     value: 'true' | 'false';
@@ -111,30 +133,10 @@ const SettingsAdvancedPage: React.FC = () => {
     const settings = useQuery(advancedSettingsQueryOptions);
     const attributes = settings.data?.attributes;
 
-    const form = useForm<FormValues>({
+    const form = useForm({
         resolver: zodResolver(schema),
-        defaultValues: {
-            recaptchaEnabled: 'false',
-            recaptchaWebsiteKey: '',
-            recaptchaSecretKey: '',
-            connectTimeout: '5',
-            requestTimeout: '15',
-            allocationsEnabled: 'false',
-            rangeStart: '',
-            rangeEnd: '',
-        },
-        values: attributes
-            ? {
-                  recaptchaEnabled: attributes['recaptcha:enabled'] ? 'true' : 'false',
-                  recaptchaWebsiteKey: attributes['recaptcha:website_key'] ?? '',
-                  recaptchaSecretKey: '',
-                  connectTimeout: String(attributes['pterodactyl:guzzle:connect_timeout'] ?? ''),
-                  requestTimeout: String(attributes['pterodactyl:guzzle:timeout'] ?? ''),
-                  allocationsEnabled: attributes['pterodactyl:client_features:allocations:enabled'] ? 'true' : 'false',
-                  rangeStart: String(attributes['pterodactyl:client_features:allocations:range_start'] ?? ''),
-                  rangeEnd: String(attributes['pterodactyl:client_features:allocations:range_end'] ?? ''),
-              }
-            : undefined,
+        defaultValues: DEFAULT_VALUES,
+        values: attributes ? toFormValues(attributes) : undefined,
     });
     const { errors } = form.formState;
 

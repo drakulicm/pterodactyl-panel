@@ -36,7 +36,7 @@ const MountFormDialog: React.FC<{
     onOpenChange: (isOpen: boolean) => void;
     onSubmit: (payload: AdminMountPayload) => void;
 }> = ({ trigger, isOpen, isPending, error, onOpenChange, onSubmit }) => {
-    const form = useForm<MountFormValues>({ resolver: zodResolver(mountSchema), defaultValues: EMPTY_MOUNT });
+    const form = useForm({ resolver: zodResolver(mountSchema), defaultValues: EMPTY_MOUNT });
 
     const handleSubmit = form.handleSubmit((values) =>
         onSubmit({ ...values, description: values.description.trim() || null }),

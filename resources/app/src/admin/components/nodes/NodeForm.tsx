@@ -57,6 +57,26 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+const DEFAULT_VALUES: FormValues = {
+    name: '',
+    description: '',
+    locationId: '',
+    isPublic: '1',
+    fqdn: '',
+    scheme: 'https',
+    behindProxy: '0',
+    maintenanceMode: '0',
+    memory: '',
+    memoryOverallocate: '0',
+    disk: '',
+    diskOverallocate: '0',
+    uploadSize: '100',
+    daemonListen: '8080',
+    daemonSftp: '2022',
+    daemonBase: '/var/lib/pterodactyl/volumes',
+    resetSecret: false,
+};
+
 const toFormValues = (node: AdminNode): FormValues => ({
     name: node.name,
     description: node.description ?? '',
@@ -90,27 +110,9 @@ const NodeForm: React.FC<{
         label: location.long ? `${location.long} (${location.short})` : location.short,
     }));
 
-    const form = useForm<FormValues>({
+    const form = useForm({
         resolver: zodResolver(schema),
-        defaultValues: {
-            name: '',
-            description: '',
-            locationId: '',
-            isPublic: '1',
-            fqdn: '',
-            scheme: 'https',
-            behindProxy: '0',
-            maintenanceMode: '0',
-            memory: '',
-            memoryOverallocate: '0',
-            disk: '',
-            diskOverallocate: '0',
-            uploadSize: '100',
-            daemonListen: '8080',
-            daemonSftp: '2022',
-            daemonBase: '/var/lib/pterodactyl/volumes',
-            resetSecret: false,
-        },
+        defaultValues: DEFAULT_VALUES,
         values: node ? toFormValues(node) : undefined,
     });
     const { errors } = form.formState;

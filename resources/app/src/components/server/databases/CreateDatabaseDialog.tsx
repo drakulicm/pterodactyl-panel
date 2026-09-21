@@ -41,7 +41,7 @@ const CreateDatabaseDialog: React.FC<{
 }> = ({ isOpen, onOpenChange }) => {
     const { server } = useServer();
     const queryClient = useQueryClient();
-    const form = useForm<z.infer<typeof schema>>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: { databaseName: '', connectionsFrom: '' },
     });

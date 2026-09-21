@@ -30,7 +30,7 @@ const ServerDetailsTab: React.FC<{ server: AdminServer }> = ({ server }) => {
     const user = server.relationships?.user?.attributes;
     const ownerRef = useRef<AdminServerUser | null>(user ?? null);
 
-    const form = useForm<FormValues>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: {
             name: server.name,

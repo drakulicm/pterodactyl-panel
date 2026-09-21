@@ -5,16 +5,16 @@ type ThemeId = 'default' | 'tokyo-night' | 'catppuccin' | 'nord' | 'gruvbox' | '
 const MODE_STORAGE_KEY = 'pterodactyl:theme-mode';
 const THEME_STORAGE_KEY = 'pterodactyl:theme';
 
-const MODES = ['light', 'dark', 'system'] as const satisfies readonly ThemeMode[];
+const MODES = ['light', 'dark', 'system'] as const;
 
-const THEMES = [
+const THEMES: readonly { id: ThemeId; label: string }[] = [
     { id: 'default', label: 'Default' },
     { id: 'tokyo-night', label: 'Tokyo Night' },
     { id: 'catppuccin', label: 'Catppuccin' },
     { id: 'nord', label: 'Nord' },
     { id: 'gruvbox', label: 'Gruvbox' },
     { id: 'rose-pine', label: 'Rosé Pine' },
-] as const satisfies readonly { id: ThemeId; label: string }[];
+];
 
 const isMode = (value: unknown): value is ThemeMode => MODES.includes(value as ThemeMode);
 
@@ -59,15 +59,5 @@ const watchSystemTheme = (onChange: (resolved: ResolvedMode) => void): void => {
     });
 };
 
-export {
-    applyTheme,
-    getStoredMode,
-    getStoredTheme,
-    MODES,
-    resolveMode,
-    storeMode,
-    storeTheme,
-    THEMES,
-    watchSystemTheme,
-};
+export { applyTheme, getStoredMode, getStoredTheme, resolveMode, storeMode, storeTheme, THEMES, watchSystemTheme };
 export type { ResolvedMode, ThemeId, ThemeMode };

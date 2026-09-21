@@ -60,7 +60,7 @@ const MountViewPage: React.FC = () => {
     const attachedNodes = attributes ? getMountNodes(attributes) : [];
     const attachedServers = attributes ? getMountServers(attributes) : [];
 
-    const form = useForm<MountFormValues>({
+    const form = useForm({
         resolver: zodResolver(mountSchema),
         defaultValues: { name: '', description: '', source: '', target: '', read_only: false, user_mountable: false },
         values: attributes

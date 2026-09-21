@@ -31,15 +31,17 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+const DEFAULT_VALUES: FormValues = { name: '', locale: 'en', twoFactor: '0' };
+
 const SettingsGeneralPage: React.FC = () => {
     const queryClient = useQueryClient();
     const settings = useQuery(generalSettingsQueryOptions);
     const attributes = settings.data?.attributes;
     const languages = Object.entries(settings.data?.meta.languages ?? {}).map(([value, label]) => ({ value, label }));
 
-    const form = useForm<FormValues>({
+    const form = useForm({
         resolver: zodResolver(schema),
-        defaultValues: { name: '', locale: 'en', twoFactor: '0' },
+        defaultValues: DEFAULT_VALUES,
         values: attributes
             ? {
                   name: attributes['app:name'],

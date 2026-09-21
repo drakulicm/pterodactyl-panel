@@ -1,16 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { basename, cleanDirectoryPath, dirname, hashToPath, joinPath, pathToHash } from '@/lib/paths';
+import { basename, dirname, hashToPath, joinPath, pathToHash } from '@/lib/paths';
 
 describe('paths', () => {
-    it('normalises directory paths', () => {
-        expect(cleanDirectoryPath('')).toBe('/');
-        expect(cleanDirectoryPath('//plugins///config/')).toBe('/plugins/config');
-    });
-
-    it('joins segments', () => {
+    it('joins segments and normalises slashes', () => {
         expect(joinPath('/', 'eula.txt')).toBe('/eula.txt');
         expect(joinPath('/plugins/', '/config.yml')).toBe('/plugins/config.yml');
+        expect(joinPath('//plugins///', '/config.yml')).toBe('/plugins/config.yml');
     });
 
     it('splits file paths', () => {

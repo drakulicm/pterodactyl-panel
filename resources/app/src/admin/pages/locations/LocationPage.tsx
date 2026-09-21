@@ -39,7 +39,7 @@ const LocationPage: React.FC = () => {
     const attributes = location.data;
     const nodes = attributes ? getLocationNodes(attributes) : [];
 
-    const form = useForm<LocationFormValues>({
+    const form = useForm({
         resolver: zodResolver(locationSchema),
         defaultValues: { short: '', long: '' },
         values: attributes ? { short: attributes.short, long: attributes.long ?? '' } : undefined,

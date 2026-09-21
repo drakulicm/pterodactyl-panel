@@ -24,7 +24,7 @@ const schema = z
     });
 
 const UpdatePasswordForm: React.FC = () => {
-    const form = useForm<z.infer<typeof schema>>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: { current: '', password: '', confirmPassword: '' },
     });

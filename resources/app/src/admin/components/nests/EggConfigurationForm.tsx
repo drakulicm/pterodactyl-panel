@@ -126,7 +126,7 @@ const EggConfigurationForm: React.FC<{
     onNestChange,
     onSubmit,
 }) => {
-    const form = useForm<EggFormValues>({ resolver: zodResolver(schema), values: defaultValues });
+    const form = useForm({ resolver: zodResolver(schema), values: defaultValues });
     const { errors } = form.formState;
 
     const nestItems = nests.map((nest) => ({ value: String(nest.id), label: `${nest.name} <${nest.author}>` }));

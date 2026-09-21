@@ -27,7 +27,7 @@ const MODE_OPTIONS = [
     { value: 'light', label: 'Light', icon: SunIcon },
     { value: 'dark', label: 'Dark', icon: MoonIcon },
     { value: 'system', label: 'System', icon: MonitorIcon },
-] as const satisfies readonly { value: ThemeMode; label: string; icon: React.ComponentType }[];
+] as const;
 
 const SidebarUserMenu: React.FC = () => {
     const user = useSessionStore((state) => state.user);

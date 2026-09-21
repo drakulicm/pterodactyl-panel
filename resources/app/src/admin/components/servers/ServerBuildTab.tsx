@@ -70,7 +70,7 @@ const ServerBuildTab: React.FC<{ server: AdminServer }> = ({ server }) => {
     const assigned = getServerAllocations(server);
     const unassigned = useQuery(nodeAllocationsQueryOptions(server.node, true));
 
-    const form = useForm<FormValues>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: {
             cpu: String(server.limits.cpu),

@@ -24,7 +24,7 @@ const schema = z.object({
 const RenameServerCard: React.FC = () => {
     const { server } = useServer();
     const queryClient = useQueryClient();
-    const form = useForm<z.infer<typeof schema>>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: { name: server.name, description: server.description ?? '' },
     });

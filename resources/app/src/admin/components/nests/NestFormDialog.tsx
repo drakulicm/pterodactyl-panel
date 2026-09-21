@@ -30,8 +30,6 @@ const nestSchema = z.object({
     description: z.string(),
 });
 
-type NestFormValues = z.infer<typeof nestSchema>;
-
 const NestFormDialog: React.FC<{
     trigger: ReactElement;
     isOpen: boolean;
@@ -40,7 +38,7 @@ const NestFormDialog: React.FC<{
     onOpenChange: (isOpen: boolean) => void;
     onSubmit: (payload: AdminNestPayload) => void;
 }> = ({ trigger, isOpen, isPending, error, onOpenChange, onSubmit }) => {
-    const form = useForm<NestFormValues>({
+    const form = useForm({
         resolver: zodResolver(nestSchema),
         defaultValues: { name: '', description: '' },
     });

@@ -28,7 +28,7 @@ const schema = z.object({
 const AccountSSHPage: React.FC = () => {
     const queryClient = useQueryClient();
     const keys = useQuery(sshKeysQueryOptions);
-    const form = useForm<z.infer<typeof schema>>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: { name: '', publicKey: '' },
     });

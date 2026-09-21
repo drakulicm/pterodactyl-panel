@@ -28,7 +28,7 @@ const ResetPasswordPage: React.FC = () => {
     const navigate = useNavigate();
     const { token } = useParams({ from: '/auth/password/reset/$token' });
     const { email } = useSearch({ from: '/auth/password/reset/$token' });
-    const form = useForm<z.infer<typeof schema>>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: { password: '', passwordConfirmation: '' },
     });

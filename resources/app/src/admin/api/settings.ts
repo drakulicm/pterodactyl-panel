@@ -3,9 +3,9 @@ import { queryOptions } from '@tanstack/react-query';
 import { BASE } from '@/admin/api/client';
 import { http } from '@/lib/http';
 
-interface SettingsDocument<Attributes, Meta> {
-    attributes: Attributes;
-    meta: Meta & { environment_only: boolean };
+interface SettingsDocument<TAttributes, TMeta> {
+    attributes: TAttributes;
+    meta: TMeta & { environment_only: boolean };
 }
 
 interface GeneralSettings {
@@ -47,13 +47,13 @@ type GeneralSettingsDocument = SettingsDocument<GeneralSettings, { languages: Re
 type MailSettingsDocument = SettingsDocument<MailSettings, { driver: string; disabled: boolean }>;
 type AdvancedSettingsDocument = SettingsDocument<AdvancedSettings, { recaptcha_using_shipped_keys: boolean }>;
 
-const settingsQueryOptions = <Document>(group: 'general' | 'mail' | 'advanced') =>
+const settingsQueryOptions = <TDocument>(group: 'general' | 'mail' | 'advanced') =>
     queryOptions({
         queryKey: ['admin', '/settings', group],
-        queryFn: async (): Promise<Document> => {
+        queryFn: async (): Promise<TDocument> => {
             const { data } = await http.get(`${BASE}/settings/${group}`);
 
-            return { attributes: data.attributes, meta: data.meta } as Document;
+            return { attributes: data.attributes, meta: data.meta } as TDocument;
         },
     });
 

@@ -49,7 +49,7 @@ const EditSubuserDialog: React.FC<{
     const { server, permissions: loggedInPermissions } = useServer();
     const queryClient = useQueryClient();
     const systemPermissions = useQuery({ ...systemPermissionsQueryOptions, enabled: isOpen });
-    const form = useForm<Values>({ resolver: zodResolver(schema), values: toValues(subuser) });
+    const form = useForm({ resolver: zodResolver(schema), values: toValues(subuser) });
 
     const canEditUser = hasPermission(loggedInPermissions, subuser ? 'user.update' : 'user.create');
     const hasAllPermissions =

@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { CpuIcon, HardDriveIcon, MemoryStickIcon, NetworkIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { Server } from '@/api/server/types';
 import { serverResourcesQueryOptions } from '@/api/servers';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useInViewport } from '@/hooks/useInViewport';
 import { bytesToString, formatIp, mbToBytes } from '@/lib/format';
 import { POWER_STATE_CLASSES } from '@/lib/powerState';
 import { cn } from '@/lib/utils';
@@ -60,7 +60,25 @@ const Stat: React.FC<{
 const ServerCard: React.FC<{
     server: Server;
 }> = ({ server }) => {
-    const [cardRef, isInViewport] = useInViewport<HTMLDivElement>();
+    const cardRef = useRef<HTMLDivElement>(null);
+    const [isInViewport, setIsInViewport] = useState(false);
+
+    useEffect(() => {
+        const element = cardRef.current;
+        if (!element) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => setIsInViewport(entries.some((entry) => entry.isIntersecting)),
+            { rootMargin: '200px' },
+        );
+
+        observer.observe(element);
+
+        return () => observer.disconnect();
+    }, []);
+
     const canQueryResources = !server.status && !server.isTransferring && !server.isNodeUnderMaintenance;
     const { data: stats, isError } = useQuery(
         serverResourcesQueryOptions(server.uuid, canQueryResources && isInViewport),

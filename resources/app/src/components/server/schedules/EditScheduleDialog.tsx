@@ -66,7 +66,7 @@ const EditScheduleDialog: React.FC<{
     const { server } = useServer();
     const queryClient = useQueryClient();
     const [isCheatsheetVisible, setIsCheatsheetVisible] = useState(false);
-    const form = useForm<Values>({ resolver: zodResolver(schema), values: toValues(schedule) });
+    const form = useForm({ resolver: zodResolver(schema), values: toValues(schedule) });
 
     const save = useMutation({
         mutationFn: (values: Values) =>

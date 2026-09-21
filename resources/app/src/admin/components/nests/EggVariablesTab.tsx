@@ -186,7 +186,7 @@ const VariableCard: React.FC<{
     variable: AdminEggVariable;
 }> = ({ nestId, eggId, variable }) => {
     const queryClient = useQueryClient();
-    const form = useForm<VariableFormValues>({
+    const form = useForm({
         resolver: zodResolver(schema),
         values: {
             name: variable.name,
@@ -265,7 +265,7 @@ const CreateVariableDialog: React.FC<{
 }> = ({ nestId, eggId }) => {
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false);
-    const form = useForm<VariableFormValues>({ resolver: zodResolver(schema), defaultValues: EMPTY_VARIABLE });
+    const form = useForm({ resolver: zodResolver(schema), defaultValues: EMPTY_VARIABLE });
 
     const create = useMutation({
         mutationFn: (values: VariableFormValues) => createEggVariable(nestId, Number(eggId), toPayload(values)),

@@ -60,7 +60,7 @@ const NestViewPage: React.FC = () => {
     const eggs = attributes ? getNestEggs(attributes) : [];
     const serverCount = attributes ? getNestServerCount(attributes) : 0;
 
-    const form = useForm<FormValues>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: { name: '', description: '' },
         values: attributes ? { name: attributes.name, description: attributes.description ?? '' } : undefined,

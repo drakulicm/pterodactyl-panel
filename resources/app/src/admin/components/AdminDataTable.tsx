@@ -12,27 +12,27 @@ import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { httpErrorToHuman, type PaginatedResult } from '@/lib/http';
 import { cn } from '@/lib/utils';
 
-interface AdminColumn<Row> {
+interface AdminColumn<TRow> {
     header: string;
     className?: string;
-    cell: (row: Row) => ReactNode;
+    cell: (row: TRow) => ReactNode;
 }
 
-interface AdminDataTableProps<Row> {
-    query: UseQueryResult<PaginatedResult<Row>>;
-    columns: AdminColumn<Row>[];
-    getRowKey: (row: Row) => string | number;
+interface AdminDataTableProps<TRow> {
+    query: UseQueryResult<PaginatedResult<TRow>>;
+    columns: AdminColumn<TRow>[];
+    getRowKey: (row: TRow) => string | number;
     emptyTitle: string;
     emptyDescription?: string;
     search?: string;
     searchPlaceholder?: string;
     onSearchChange?: (value: string) => void;
     onPageChange?: (page: number) => void;
-    onRowClick?: (row: Row) => void;
+    onRowClick?: (row: TRow) => void;
     toolbar?: ReactNode;
 }
 
-const AdminDataTable = <Row,>({
+const AdminDataTable = <TRow,>({
     query,
     columns,
     getRowKey,
@@ -44,7 +44,7 @@ const AdminDataTable = <Row,>({
     onPageChange,
     onRowClick,
     toolbar,
-}: AdminDataTableProps<Row>) => {
+}: AdminDataTableProps<TRow>) => {
     const { data, error, isPending } = query;
     const [value, setValue] = useState(search ?? '');
     const debounced = useDebouncedValue(value);

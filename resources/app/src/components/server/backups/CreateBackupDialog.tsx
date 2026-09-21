@@ -36,7 +36,7 @@ const CreateBackupDialog: React.FC = () => {
     const { server, permissions } = useServer();
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false);
-    const form = useForm<z.infer<typeof schema>>({
+    const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: { name: '', ignored: '', isLocked: false },
     });
