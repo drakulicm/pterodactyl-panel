@@ -51,6 +51,12 @@ interface Server {
     allocations: Allocation[];
 }
 
+interface ServerPlayers {
+    isOnline: boolean;
+    players: number;
+    maxPlayers: number;
+}
+
 interface ServerStats {
     status: ServerPowerState;
     isSuspended: boolean;
@@ -62,4 +68,13 @@ interface ServerStats {
     uptime: number;
 }
 
-export type { Allocation, Server, ServerEggVariable, ServerLimits, ServerPowerState, ServerStats, ServerStatus };
+export type {
+    Allocation,
+    Server,
+    ServerEggVariable,
+    ServerLimits,
+    ServerPlayers,
+    ServerPowerState,
+    ServerStats,
+    ServerStatus,
+};

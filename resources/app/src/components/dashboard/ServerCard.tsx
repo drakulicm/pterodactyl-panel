@@ -1,14 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { CpuIcon, HardDriveIcon, MemoryStickIcon, NetworkIcon } from 'lucide-react';
+import { CpuIcon, HardDriveIcon, MemoryStickIcon, NetworkIcon, UsersIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import type { Server } from '@/api/server/types';
-import { serverResourcesQueryOptions } from '@/api/servers';
+import { serverPlayerCountQueryOptions, serverResourcesQueryOptions } from '@/api/servers';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { bytesToString, formatIp, mbToBytes } from '@/lib/format';
+import { hasPlayerCount } from '@/lib/playerCount';
 import { POWER_STATE_CLASSES } from '@/lib/powerState';
 import { cn } from '@/lib/utils';
 
@@ -84,6 +85,11 @@ const ServerCard: React.FC<{
         serverResourcesQueryOptions(server.uuid, canQueryResources && isInViewport),
     );
 
+    const isQueryable = hasPlayerCount(server.eggFeatures);
+    const { data: players } = useQuery(
+        serverPlayerCountQueryOptions(server.uuid, isQueryable && isInViewport && stats?.status === 'running'),
+    );
+
     const allocation = server.allocations.find((item) => item.isDefault);
     const statusLabel = getStatusLabel(server, stats?.isSuspended ?? false);
     const memoryLimit = server.limits.memory === 0 ? 'Unlimited' : bytesToString(mbToBytes(server.limits.memory));
@@ -105,10 +111,17 @@ const ServerCard: React.FC<{
                             )}
                         />
                         <span className='truncate'>{server.name}</span>
-                        {statusLabel && (
+                        {statusLabel ? (
                             <Badge variant='secondary' className='ml-auto'>
                                 {statusLabel}
                             </Badge>
+                        ) : (
+                            players?.isOnline && (
+                                <Badge variant='outline' className='ml-auto gap-1 font-normal tabular-nums'>
+                                    <UsersIcon className='size-3 text-muted-foreground' />
+                                    {players.players} / {players.maxPlayers}
+                                </Badge>
+                            )
                         )}
                     </CardTitle>
                     <CardDescription className='flex items-center gap-1.5 truncate'>

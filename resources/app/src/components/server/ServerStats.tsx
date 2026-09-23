@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import {
     ArrowDownToLineIcon,
     ArrowUpFromLineIcon,
@@ -6,10 +7,14 @@ import {
     HardDriveIcon,
     MemoryStickIcon,
     NetworkIcon,
+    UsersIcon,
 } from 'lucide-react';
 
+import type { ServerPlayers } from '@/api/server/types';
+import { serverPlayerCountQueryOptions } from '@/api/servers';
 import { useServer } from '@/hooks/useServer';
 import { bytesToString, formatIp, formatUptime, mbToBytes } from '@/lib/format';
+import { hasPlayerCount } from '@/lib/playerCount';
 import { cn } from '@/lib/utils';
 import { useServerStore } from '@/stores/serverStore';
 import { useStatsStore } from '@/stores/statsStore';
@@ -44,6 +49,22 @@ const StatBlock: React.FC<{
     );
 };
 
+const formatPlayers = (isOffline: boolean, isError: boolean, players: ServerPlayers | undefined): string => {
+    if (isOffline) {
+        return 'Offline';
+    }
+
+    if (isError || players?.isOnline === false) {
+        return 'Unavailable';
+    }
+
+    if (!players) {
+        return 'Checking';
+    }
+
+    return String(players.players);
+};
+
 const ServerStats: React.FC = () => {
     const { server } = useServer();
     const powerState = useServerStore((state) => state.powerState);
@@ -52,6 +73,9 @@ const ServerStats: React.FC = () => {
     const allocation = server.allocations.find((item) => item.isDefault);
     const isOffline = !powerState || powerState === 'offline';
     const { cpu, memory, disk } = server.limits;
+
+    const isQueryable = hasPlayerCount(server.eggFeatures);
+    const { data: players, isError } = useQuery(serverPlayerCountQueryOptions(server.uuid, isQueryable && !isOffline));
 
     return (
         <div className='grid grid-cols-2 gap-3 lg:grid-cols-1'>
@@ -65,6 +89,14 @@ const ServerStats: React.FC = () => {
                 title='Uptime'
                 value={isOffline ? 'Offline' : stats.uptime > 0 ? formatUptime(stats.uptime) : powerState}
             />
+            {isQueryable && (
+                <StatBlock
+                    icon={UsersIcon}
+                    title='Players'
+                    value={formatPlayers(isOffline, isError, players)}
+                    limit={players?.isOnline ? String(players.maxPlayers) : undefined}
+                />
+            )}
             <StatBlock
                 icon={CpuIcon}
                 title='CPU Load'

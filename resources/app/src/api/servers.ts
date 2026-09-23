@@ -1,7 +1,7 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query';
 
 import { type Raw, toServer } from '@/api/server/transformers';
-import type { Server, ServerStats } from '@/api/server/types';
+import type { Server, ServerPlayers, ServerStats } from '@/api/server/types';
 import { getPaginationSet, http, type PaginatedResult } from '@/lib/http';
 
 type ServerListType = 'owner' | 'admin';
@@ -37,6 +37,17 @@ const getServerResourceUsage = async (server: string): Promise<ServerStats> => {
     };
 };
 
+const getServerPlayerCount = async (server: string): Promise<ServerPlayers> => {
+    const { data } = await http.get(`/api/client/servers/${server}/players`);
+    const { attributes } = data;
+
+    return {
+        isOnline: attributes.is_online,
+        players: attributes.players,
+        maxPlayers: attributes.max_players,
+    };
+};
+
 const serversQueryOptions = (params: { query?: string; page?: number; type?: ServerListType }) =>
     queryOptions({
         queryKey: ['servers', params],
@@ -53,5 +64,14 @@ const serverResourcesQueryOptions = (server: string, enabled: boolean) =>
         retry: false,
     });
 
-export { serverResourcesQueryOptions, serversQueryOptions };
+const serverPlayerCountQueryOptions = (server: string, enabled: boolean) =>
+    queryOptions({
+        queryKey: ['server', server, 'players'],
+        queryFn: () => getServerPlayerCount(server),
+        enabled,
+        refetchInterval: 15000,
+        retry: false,
+    });
+
+export { serverPlayerCountQueryOptions, serverResourcesQueryOptions, serversQueryOptions };
 export type { ServerListType };

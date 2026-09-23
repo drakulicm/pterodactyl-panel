@@ -12,15 +12,33 @@ Wings are unchanged apart from additive API endpoints.
 | `resources/scripts` | The upstream React 16 / webpack frontend. Reference only, deleted at cutover. |
 | `resources/views/templates/app.blade.php` | Wrapper that boots the new SPA (`@vite`), replacing `wrapper.blade.php`. |
 | `config/ui.php` | The `APP_NEW_UI` / `APP_NEW_ADMIN` feature flags. |
+| `config/query.php` | Which egg features get a player count, and how their game is queried. |
 | `resources/app/CONVENTIONS.md` | How to write code in the new frontend. Read before contributing. |
 | `resources/app/ADMIN_API.md` | Contract for the Application API endpoints added by this fork. |
 | `resources/app/e2e` | Playwright specs that drive the built frontend against a running panel. |
 | `CUTOVER.md` | The staged plan for turning the flags on and deleting the upstream frontend. |
 
 Everything is additive so the fork stays rebasable onto upstream. Upstream files touched so far:
-`routes/admin.php`, `routes/api-application.php`, `app/Http/Controllers/{Base/IndexController,Auth/LoginController}.php`,
+`routes/admin.php`, `routes/api-application.php`, `routes/api-client.php`,
+`app/Http/Controllers/{Base/IndexController,Auth/LoginController}.php`,
 `app/Transformers/Api/Application/{BaseTransformer,EggTransformer}.php`, `Dockerfile`, and
 `tests/Integration/Api/Client/AccountControllerTest.php` (whitespace only, to satisfy `php-cs-fixer`).
+
+## Player counts
+
+Wings only reports container resource usage, so the player count on the dashboard and the console page comes from the
+panel querying the game server itself. `GET /api/client/servers/{server}/players` opens a UDP socket to the server's
+primary allocation and speaks Steam's A2S_INFO, caching the result (successes and failures alike) for `query.ttl`
+seconds.
+
+A server only gets a player count when its egg carries one of the features in `config/query.php`, which maps each
+feature to the offset added to the allocation port to reach the query port. Valheim answers one port above its game
+port, so its egg needs the `valheim_query` feature. That feature list is mirrored in
+`resources/app/src/lib/playerCount.ts`, which is how the frontend decides whether to ask at all — add a game to one and
+you must add it to the other.
+
+This needs the panel to reach the node's query port. On a single-box install that is already true; a split deployment
+needs the firewall opened for it, and without it every queryable server just reads `Unavailable`.
 
 ## Feature flags
 
