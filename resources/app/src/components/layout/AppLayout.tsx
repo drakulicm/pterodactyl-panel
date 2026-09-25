@@ -1,10 +1,12 @@
 import { Outlet } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { CommandPalette } from '@/components/layout/CommandPalette';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
+
+const isSidebarPinned = document.cookie.split('; ').includes('sidebar_state=true');
 
 const AppLayout: React.FC = () => {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -24,10 +26,12 @@ const AppLayout: React.FC = () => {
 
     return (
         <TooltipProvider>
-            <SidebarProvider>
+            <SidebarProvider defaultOpen={isSidebarPinned}>
                 <AppSidebar onSearchOpen={() => setIsSearchOpen(true)} />
                 <SidebarInset className='h-svh overflow-y-auto'>
-                    <Outlet />
+                    <Suspense>
+                        <Outlet />
+                    </Suspense>
                 </SidebarInset>
                 <CommandPalette isOpen={isSearchOpen} onOpenChange={setIsSearchOpen} />
             </SidebarProvider>

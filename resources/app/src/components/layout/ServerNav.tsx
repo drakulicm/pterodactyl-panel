@@ -3,25 +3,31 @@ import { Link, useRouterState } from '@tanstack/react-router';
 import {
     ArchiveIcon,
     CalendarClockIcon,
+    ChevronsUpDownIcon,
     DatabaseIcon,
     FolderIcon,
     HistoryIcon,
+    LayoutGridIcon,
     NetworkIcon,
     PlayCircleIcon,
     SettingsIcon,
     TerminalSquareIcon,
     UsersIcon,
 } from 'lucide-react';
+import { useState } from 'react';
 
 import { serverQueryOptions } from '@/api/server/server';
+import { serversQueryOptions } from '@/api/servers';
+import { SIDEBAR_LABEL_CLASSES, SidebarDivider, SidebarNavItem } from '@/components/layout/SidebarNavItem';
 import {
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarGroupLabel,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-} from '@/components/ui/sidebar';
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Spinner } from '@/components/ui/spinner';
 import { hasAnyPermission } from '@/lib/permissions';
 import { POWER_STATE_CLASSES, POWER_STATE_LABELS } from '@/lib/powerState';
 import { cn } from '@/lib/utils';
@@ -40,17 +46,91 @@ const SERVER_LINKS = [
     { to: '/server/$id/activity', label: 'Activity', icon: HistoryIcon, permission: 'activity.*' },
 ] as const;
 
+const RISE_DELAYS = [
+    '[--tw-animation-delay:0ms]',
+    '[--tw-animation-delay:16ms]',
+    '[--tw-animation-delay:32ms]',
+    '[--tw-animation-delay:48ms]',
+    '[--tw-animation-delay:64ms]',
+    '[--tw-animation-delay:80ms]',
+    '[--tw-animation-delay:96ms]',
+    '[--tw-animation-delay:112ms]',
+    '[--tw-animation-delay:128ms]',
+    '[--tw-animation-delay:144ms]',
+];
+
 const isLinkActive = (pathname: string, target: string, isRoot: boolean): boolean => {
     const current = pathname.replace(/\/$/, '');
 
     return isRoot ? current === target : current === target || current.startsWith(`${target}/`);
 };
 
+const ServerSwitcher: React.FC<{
+    id: string;
+    name: string;
+    onOpenChange: (isOpen: boolean) => void;
+}> = ({ id, name, onOpenChange }) => {
+    const powerState = useServerStore((state) => state.powerState);
+    const [isOpen, setIsOpen] = useState(false);
+    const servers = useQuery({ ...serversQueryOptions({}), enabled: isOpen });
+
+    const handleOpenChange = (open: boolean) => {
+        setIsOpen(open);
+        onOpenChange(open);
+    };
+
+    return (
+        <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
+            <DropdownMenuTrigger className='relative z-10 flex h-11 w-full shrink-0 items-center gap-1.5 rounded-lg pr-2 pl-0 text-left outline-none transition-colors duration-200 ease-out focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset aria-expanded:bg-sidebar-accent'>
+                <span className='relative flex size-9 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent text-xs font-semibold uppercase'>
+                    {name.slice(0, 2)}
+                    <span
+                        className={cn(
+                            'absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-sidebar bg-muted-foreground transition-colors duration-200 ease-out',
+                            powerState && POWER_STATE_CLASSES[powerState],
+                        )}
+                    />
+                </span>
+                <span className={cn('min-w-0 flex-1', SIDEBAR_LABEL_CLASSES)}>
+                    <span className='block truncate text-sm font-medium'>{name}</span>
+                    <span className='block truncate text-xs text-muted-foreground'>
+                        {powerState ? POWER_STATE_LABELS[powerState] : 'State unknown'}
+                    </span>
+                </span>
+                <ChevronsUpDownIcon className={cn('size-4 shrink-0 text-muted-foreground', SIDEBAR_LABEL_CLASSES)} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side='right' align='start' sideOffset={8} className='min-w-60'>
+                <DropdownMenuLabel>Switch server</DropdownMenuLabel>
+                {servers.isPending && (
+                    <div className='flex justify-center p-2'>
+                        <Spinner />
+                    </div>
+                )}
+                {servers.data?.items.map((server) => (
+                    <DropdownMenuItem
+                        key={server.id}
+                        disabled={server.id === id}
+                        render={<Link to='/server/$id' params={{ id: server.id }} />}
+                    >
+                        <span className='truncate'>{server.name}</span>
+                        <span className='ml-auto font-mono text-xs text-muted-foreground'>{server.id}</span>
+                    </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem render={<Link to='/' />}>
+                    <LayoutGridIcon />
+                    All servers
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+};
+
 const ServerNav: React.FC<{
     id: string;
-}> = ({ id }) => {
+    onMenuOpenChange: (isOpen: boolean) => void;
+}> = ({ id, onMenuOpenChange }) => {
     const pathname = useRouterState({ select: (state) => state.location.pathname });
-    const powerState = useServerStore((state) => state.powerState);
     const { data } = useQuery(serverQueryOptions(id));
 
     if (!data) {
@@ -58,36 +138,25 @@ const ServerNav: React.FC<{
     }
 
     return (
-        <SidebarGroup>
-            <SidebarGroupLabel className='gap-2'>
-                <span
-                    className={cn(
-                        'size-2 shrink-0 rounded-full bg-muted-foreground/40 transition-colors duration-200',
-                        powerState && POWER_STATE_CLASSES[powerState],
-                    )}
-                />
-                <span className='truncate'>{data.server.name}</span>
-                <span className='sr-only'>{powerState ? POWER_STATE_LABELS[powerState] : 'State unknown'}</span>
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-                <SidebarMenu>
-                    {SERVER_LINKS.filter((link) => hasAnyPermission(data.permissions, link.permission as string | string[] | null)).map(
-                        ({ to, label, icon: Icon }) => (
-                            <SidebarMenuItem key={to}>
-                                <SidebarMenuButton
-                                    isActive={isLinkActive(pathname, to.replace('$id', id), to === '/server/$id')}
-                                    tooltip={label}
-                                    render={<Link to={to} params={{ id }} />}
-                                >
-                                    <Icon />
-                                    <span>{label}</span>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        ),
-                    )}
-                </SidebarMenu>
-            </SidebarGroupContent>
-        </SidebarGroup>
+        <>
+            <SidebarDivider />
+            <ServerSwitcher id={id} name={data.server.name} onOpenChange={onMenuOpenChange} />
+            {SERVER_LINKS.filter((link) => hasAnyPermission(data.permissions, link.permission)).map(
+                ({ to, label, icon }, index) => (
+                    <SidebarNavItem
+                        key={`${id}${to}`}
+                        label={label}
+                        icon={icon}
+                        isActive={isLinkActive(pathname, to.replace('$id', id), to === '/server/$id')}
+                        render={<Link to={to} params={{ id }} />}
+                        className={cn(
+                            'animate-in fill-mode-backwards fade-in-0 slide-in-from-bottom-1.5 duration-250 ease-out-strong',
+                            RISE_DELAYS[index],
+                        )}
+                    />
+                ),
+            )}
+        </>
     );
 };
 

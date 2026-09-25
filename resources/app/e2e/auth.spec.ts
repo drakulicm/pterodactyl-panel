@@ -45,7 +45,7 @@ test.describe('authentication', () => {
         await page.waitForURL('/');
         await expect(page.getByRole('heading', { name: 'Your servers' })).toBeVisible();
 
-        await page.getByRole('button', { name: new RegExp(credentials.username) }).click();
+        await page.getByRole('button', { name: new RegExp(credentials.username) }).click({ position: { x: 24, y: 24 } });
         await page.getByRole('menuitem', { name: 'Sign out' }).click();
 
         await expect(page).toHaveURL(/\/auth\/login/);

@@ -12,7 +12,7 @@ const hasPermission = (permissions: string[], action: string): boolean => {
     return permissions.includes(action);
 };
 
-const hasAnyPermission = (permissions: string[], actions: string | string[] | null): boolean => {
+const hasAnyPermission = (permissions: string[], actions: string | readonly string[] | null): boolean => {
     if (actions === null) {
         return true;
     }
